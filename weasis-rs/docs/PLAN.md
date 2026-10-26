@@ -50,8 +50,9 @@ desktop** (dibaca langsung dari source code Swing-nya).
 
 | D12 | Uji coba terhadap aplikasi Java (golden) dan server PACS **ditunda sampai pemilik repo menginstruksikan**. Selama itu, verifikasi langkah = build, lint, dan test otomatis milik `weasis-rs` (unit test & e2e) | Permintaan pengguna; JDK 25+ belum tersedia |
 | D13 | Semua kode mengikuti [`CODING-GUIDE.md`](CODING-GUIDE.md): rapi, mudah dibaca, setiap file menyebut kelas Java acuannya | Pemilik repo akan memperbaiki kode sendiri |
+| D14 | Codec di browser, semuanya **murni Rust**: `dicom-pixeldata` (native, deflate, RLE), `oxiarc-jpeg` (JPEG baseline/extended/lossless), `pure_jpegls` (JPEG-LS 1 komponen), `oxideav-jpeg2000` (JPEG 2000 & HTJ2K). JPEG-LS multi-komponen (RGB) di-decode **server**. Video: H.264 diputar langsung oleh browser; MPEG-2 & HEVC di-transcode server (dipastikan di langkah 1.13) | Hasil uji 0.4: semua lulus di WASM dan cocok dengan codec C (lossless identik, lossy selisih ≤ 1). `openjp2` ditolak (memicu *undefined behavior*), `hayro-jpeg2000` ditolak (tanpa HTJ2K, tanpa clamp) |
 
-Keputusan baru ditambahkan di tabel ini (D14, D15, …) beserta alasannya.
+Keputusan baru ditambahkan di tabel ini (D15, D16, …) beserta alasannya.
 
 ## 3. Arsitektur
 
@@ -146,7 +147,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
   Wajib: CT, MR, CR/DX (MONOCHROME1), US RGB, multiframe, PET+CT (fusion), PR, KO, SEG,
   SR, RTSTRUCT/RTDOSE/RTPLAN, ECG, audio, PDF terenkapsulasi, video, DICOMDIR, ZIP,
   overlay, dan setiap transfer syntax di 0.4. Verifikasi: tabel README lengkap, total < 100 MB.
-- [ ] **0.4** Uji codec di WASM: Implicit/Explicit LE, Explicit BE, Deflate, RLE,
+- [x] **0.4** Uji codec di WASM: Implicit/Explicit LE, Explicit BE, Deflate, RLE,
   JPEG baseline 8/12-bit, JPEG lossless, JPEG-LS, JPEG 2000, HTJ2K, video (MPEG-2/4, HEVC).
   Catat hasil per syntax di `PROGRESS.md`. Yang tidak bisa di WASM → keputusan baru:
   decode/transcode di server. Verifikasi: `wasm-bindgen-test` lulus untuk syntax yang didukung.
@@ -296,7 +297,7 @@ Setiap langkah di fase ini besar; wajib dipecah jadi sub-langkah sebelum dikerja
 
 | Risiko | Mitigasi |
 |---|---|
-| Codec JPEG 2000 / JPEG-LS / HTJ2K / video tidak bisa di WASM | Diuji di 0.4; cadangan: decode/transcode di server (keputusan baru) |
+| Crate codec masih muda (`oxideav-jpeg2000` 0.0.x, `pure_jpegls`) | Test `codec_support` dijalankan di CI; versi dikunci di `Cargo.lock`; jika bermasalah, decode di server (D14) |
 | Volume besar (MPR, 3D, fusion) melebihi memori browser | Buffer per volume di Worker, tipe data asli (u16), batas memori seperti `Memory-Management.md` |
 | Swing → web: perilaku docking & dialog berbeda | Ikuti tata letak & isi panel, bukan mekanisme Swing-nya |
 | Scope sangat besar (±233 rb baris) | Fase 0–4 dulu agar viewer inti cepat terpakai; fase lanjut dipecah saat dimulai |

@@ -13,10 +13,22 @@ Weasis 4.8.0-SNAPSHOT) adalah **acuan** yang hanya dibaca.
 4. Kerjakan satu langkah → verifikasi → centang di PLAN.md → perbarui PROGRESS.md →
    commit `weasis-rs: [x.y] <ringkasan>` → push ke `claude/vibrant-bardeen-k1240f`.
 
+## Perintah (dijalankan dari `weasis-rs/`)
+
+```bash
+cargo fmt --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+cargo test -p weasis-core --target wasm32-unknown-unknown   # test di WebAssembly (Node.js)
+```
+
+Alat yang dibutuhkan (versi di `docs/PROGRESS.md` §Lingkungan): `trunk`, dan
+`wasm-bindgen-cli` dengan versi yang sama dengan `wasm-bindgen` di `Cargo.lock`.
+
 ## Aturan
 
 - Jangan mengubah kode Java; hanya dibaca sebagai acuan.
-- Keputusan baru dicatat di PLAN.md §2 (D14, D15, …); jangan diam-diam mengganti keputusan lama.
+- Keputusan baru dicatat di PLAN.md §2 (D15, D16, …); jangan diam-diam mengganti keputusan lama.
 - Kode wajib mengikuti `weasis-rs/docs/CODING-GUIDE.md`. Daftar fitur: `weasis-rs/docs/FEATURES.md`.
 - Uji coba terhadap aplikasi Java / server PACS hanya atas instruksi pemilik (D12).
 - Acuan `weasis-dicom-tools`: clone `https://github.com/fachrurozy182/weasis-dicom-tools` (branch `master`)

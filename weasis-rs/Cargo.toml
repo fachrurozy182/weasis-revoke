@@ -18,6 +18,21 @@ repository = "https://github.com/fachrurozy182/weasis-revoke"
 weasis-core = { path = "crates/weasis-core" }
 weasis-net = { path = "crates/weasis-net" }
 
+# DICOM toolkit (decision D4). dicom-pixeldata only decodes native, RLE and deflated data:
+# `rayon` threads are not available in the browser and its JPEG/JPEG 2000 codecs are
+# replaced by the pure-Rust codecs below (decision D14).
+dicom-object = { version = "0.10.0", features = ["deflate"] }
+dicom-dictionary-std = "0.10.0"
+dicom-pixeldata = { version = "0.10.0", default-features = false, features = ["rle", "deflate"] }
+
+# Pure-Rust image codecs that also compile to WebAssembly (decision D14).
+oxiarc-jpeg = "0.4.2"
+jpegls = { package = "pure_jpegls", version = "2.0.0" }
+oxideav-jpeg2000 = { version = "0.0.17", default-features = false }
+
+# Test-only: run the same tests inside WebAssembly.
+wasm-bindgen-test = "0.3.79"
+
 # Lint rules from docs/CODING-GUIDE.md §1.
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -27,3 +42,7 @@ missing_docs = "warn"
 unwrap_used = "deny"
 expect_used = "deny"
 panic = "deny"
+
+# Optimize dependencies (codecs) even in debug builds: unoptimized decoding is ~50x slower.
+[profile.dev.package."*"]
+opt-level = 2

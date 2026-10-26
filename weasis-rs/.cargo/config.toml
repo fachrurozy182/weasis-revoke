@@ -1,0 +1,4 @@
+# `cargo test --target wasm32-unknown-unknown` runs the tests in Node.js through
+# wasm-bindgen-test-runner (install: `cargo install wasm-bindgen-cli --version <wasm-bindgen version in Cargo.lock>`).
+[target.wasm32-unknown-unknown]
+runner = "wasm-bindgen-test-runner"
