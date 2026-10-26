@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.2 (1.2.d jenis objek)
-- **Langkah berikutnya:** 1.3.a Ekstraksi bytes per frame dari pixel data terenkapsulasi
+- **Langkah terakhir selesai:** 1.3.a Bytes per frame terenkapsulasi
+- **Langkah berikutnya:** 1.3.b Modul codec + buffer piksel bertipe
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -67,7 +67,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.2.b** Ekstrak tag tiap level ke model + atribut instance (SOP, instance number, TS, concatenation) — `DicomMediaIO.writeInstanceTags`
 - [x] **1.2.c** Charset (Specific Character Set) — `CharsetEncoding`
 - [x] **1.2.d** Jenis objek (gambar, video, PR, KO, SEG, SR, dokumen, waveform, tidak didukung) dari SOP Class — `DicomMediaIO` (MIME types), `DicomSpecialElementFactory`
-- [ ] **1.3.a** Ekstraksi bytes per frame dari pixel data terenkapsulasi (offset table, multi-fragmen) — `ExtendSegmentedInputImageStream`
+- [x] **1.3.a** Ekstraksi bytes per frame dari pixel data terenkapsulasi (offset table, multi-fragmen) — `ExtendSegmentedInputImageStream`
 - [ ] **1.3.b** Modul codec: dispatch per transfer syntax (D14), buffer piksel bertipe (u8/u16/i16/i32/f32/RGB) — `DicomImageReader`
 - [ ] **1.3.c** Fotometri: MONOCHROME1/2, RGB, YBR_FULL(_422), palette color, planar configuration — `PaletteColorUtils`, `ImageConversion`
 - [ ] **1.3.d** Pindahkan `tests/codec_support.rs` ke modul codec
@@ -113,3 +113,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.2.c | dicom-rs tidak mendukung ISO 2022 (Jepang/Korea/Cina): decoder sendiri `dicom::charset` di atas `encoding_rs`; 13 file charset pydicom lulus (`tests/charset_support.rs`); CI: `concurrency` membatalkan run lama |
 | 2026-10-26 | 0.7 | CI run pertama hijau (±10 menit): fmt, clippy native+WASM, test native+WASM, `trunk build --release` |
 | 2026-10-26 | 1.2.d | `dicom::object_kind` (13 jenis, aturan `DicomMediaIO.setMimeType`); RTDOSE berpiksel = gambar seperti di Java |
+| 2026-10-26 | 1.3.a | `dicom::compressed_frame` (aturan fragmen seperti `DicomImageReader`, tanpa Basic Offset Table); semua frame multiframe J2K (19) & JPEG (30) ter-decode |
