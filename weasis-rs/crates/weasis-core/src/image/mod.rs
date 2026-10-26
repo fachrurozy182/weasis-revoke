@@ -4,6 +4,7 @@ mod color_map;
 mod color_space;
 mod lookup_table;
 mod modality;
+mod overlay;
 mod preset_list;
 mod render;
 mod voi;
@@ -16,6 +17,10 @@ pub use color_map::{
 pub use color_space::{ColorSpace, Rgba};
 pub use lookup_table::LookupTable;
 pub use modality::{ModalityLut, ModalityTransform};
+pub use overlay::{
+    EmbeddedOverlay, OverlayPlane, embedded_overlays, overlay_mask, overlay_planes, paint_overlay,
+    presentation_overlay_planes,
+};
 pub use preset_list::{PresetContext, PresetWindowLevel, preset_list};
 pub use render::render_gray;
 pub use voi::{LutShape, VoiLut, VoiParams, VoiWindow, sequence_window};
