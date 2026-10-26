@@ -13,6 +13,8 @@ use crate::i18n::tr;
 
 /// Ids of the actions of the main menus.
 pub mod action {
+    /// Opens DICOM files.
+    pub const OPEN_DICOM: &str = "open-dicom";
     /// Opens the preferences.
     pub const PREFERENCES: &str = "preferences";
     /// Session identity masking switched.
@@ -44,6 +46,7 @@ pub fn main_menus(
         label: tr(key).to_owned(),
         accelerator,
     };
+    let open = vec![action(action::OPEN_DICOM, "OpenDicomAction.title", None)];
     let submenu = |key: &str| MenuItem::Submenu {
         label: tr(key).to_owned(),
         items: Vec::new(),
@@ -52,7 +55,10 @@ pub fn main_menus(
         Menu {
             label: tr("WeasisWin.file").to_owned(),
             items: vec![
-                submenu("WeasisWin.open"),
+                MenuItem::Submenu {
+                    label: tr("WeasisWin.open").to_owned(),
+                    items: open,
+                },
                 submenu("WeasisWin.import"),
                 submenu("WeasisWin.export"),
                 submenu("launcher"),

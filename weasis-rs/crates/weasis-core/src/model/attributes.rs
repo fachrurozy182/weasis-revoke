@@ -9,6 +9,8 @@
 use std::collections::BTreeMap;
 
 use dicom_object::Tag;
+use serde::de::Error as _;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Attribute values of one node, keyed by DICOM tag.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -43,6 +45,32 @@ impl Attributes {
     }
 }
 
+/// Serialized as a map of `GGGGEEEE` hexadecimal tags to values, e.g. to cross the import worker.
+impl Serialize for Attributes {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.collect_map(
+            self.0
+                .iter()
+                .map(|(tag, value)| (format!("{:04X}{:04X}", tag.0, tag.1), value)),
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for Attributes {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let map = BTreeMap::<String, String>::deserialize(deserializer)?;
+        let mut attributes = Attributes::new();
+        for (key, value) in map {
+            let tag = u32::from_str_radix(&key, 16)
+                .ok()
+                .filter(|_| key.len() == 8)
+                .ok_or_else(|| D::Error::custom(format!("invalid tag {key}")))?;
+            attributes.set(Tag((tag >> 16) as u16, tag as u16), value);
+        }
+        Ok(attributes)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -60,5 +88,18 @@ mod tests {
 
         assert_eq!(first.get(tags::STUDY_DESCRIPTION), Some("Head"));
         assert_eq!(first.get(tags::STUDY_ID), Some("7"));
+    }
+
+    #[test]
+    fn attributes_round_trip_through_json() {
+        let mut attributes = Attributes::new();
+        attributes.set(tags::PATIENT_NAME, "Doe^John");
+        let json = serde_json::to_string(&attributes).expect("serializable");
+        assert_eq!(json, r#"{"00100010":"Doe^John"}"#);
+        assert_eq!(
+            serde_json::from_str::<Attributes>(&json).ok(),
+            Some(attributes)
+        );
+        assert!(serde_json::from_str::<Attributes>(r#"{"0010":"x"}"#).is_err());
     }
 }

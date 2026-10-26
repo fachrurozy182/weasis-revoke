@@ -13,6 +13,7 @@
 
 use super::Attributes;
 use crate::dicom::ObjectKind;
+use serde::{Deserialize, Serialize};
 
 /// A patient node.
 #[derive(Debug, Clone, PartialEq)]
@@ -61,7 +62,7 @@ pub struct InstanceNode {
 }
 
 /// An instance to add, with the keys and attributes of every level it belongs to.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct NewInstance {
     /// Patient pseudo UID.
     pub patient_key: String,

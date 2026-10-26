@@ -12,6 +12,7 @@ use super::menu::{MenuBar, MenuItem};
 use super::menus::{action, main_menus};
 use super::shortcut_page::shortcut_page;
 use super::viewers::{ViewerArea, Viewers};
+use crate::explorer::{DicomExplorer, ImportReport, Importer};
 use crate::i18n::tr;
 use crate::shortcuts::Shortcuts;
 
@@ -25,7 +26,10 @@ const BUG_REPORT_URL: &str = "https://github.com/nroduit/Weasis/issues";
 #[component]
 pub fn MainWindow() -> impl IntoView {
     let anonymize = RwSignal::new(false);
-    let docking = Docking::new(dockables());
+    let importer = Importer::new();
+    provide_context(importer);
+    let docking = Docking::new(dockables(importer));
+    let file_input = NodeRef::<leptos::html::Input>::new();
     let (tools, explorers) = dockable_menu_items(docking);
     let viewers = Viewers::new();
     provide_context(viewers);
@@ -36,6 +40,11 @@ pub fn MainWindow() -> impl IntoView {
     docking_keys(shortcuts, viewers, maximized, panel_list);
     Effect::new(move |_| document().set_title(&window_title(anonymize.get())));
     let on_action = Callback::new(move |id: &'static str| match id {
+        action::OPEN_DICOM => {
+            if let Some(input) = file_input.get() {
+                input.click();
+            }
+        }
         action::ONLINE_HELP => open_in_new_tab(&online_help_url("")),
         action::SHORTCUTS => open_page(&shortcuts.manager.with(shortcut_page)),
         action::BUG_REPORT => open_in_new_tab(BUG_REPORT_URL),
@@ -72,6 +81,20 @@ pub fn MainWindow() -> impl IntoView {
                 <DockStrip docking=docking side=DockSide::Right />
             </main>
             <PanelList open=panel_list viewers=viewers docking=docking />
+            <ImportReport messages=importer.report />
+            // File ▸ Open ▸ DICOM: every file can be chosen, DICOM files often have no extension.
+            // TODO(2.6): open the series in the default viewer, like `View2dFactory`.
+            <input
+                node_ref=file_input
+                type="file"
+                multiple
+                hidden
+                on:change=move |event| {
+                    let input: web_sys::HtmlInputElement = event_target(&event);
+                    importer.import(selected_files(&input));
+                    input.set_value("");
+                }
+            />
         </div>
     }
 }
@@ -87,25 +110,48 @@ fn window_title(masking: bool) -> String {
 }
 
 /// The dockables of the main window with their default side.
-// TODO(2.4, 3.x): the DICOM explorer and the viewer tools fill these panels.
-fn dockables() -> Vec<Dockable> {
-    let dockable = |id, key: &str, explorer, side| Dockable {
+// TODO(3.14): the viewer tools fill their panels.
+fn dockables(importer: Importer) -> Vec<Dockable> {
+    let dockable = |id, key: &str, explorer, side, content| Dockable {
         id,
         title: tr(key).to_owned(),
         explorer,
         side,
-        content: ViewFn::from(|| ()),
+        content,
     };
+    let explorer = ViewFn::from(move || view! { <DicomExplorer importer=importer /> });
+    let empty = || ViewFn::from(|| ());
     vec![
         dockable(
             "dicom-explorer",
             "DicomExplorer.title",
             true,
             DockSide::Left,
+            explorer,
         ),
-        dockable("image-tools", "ImageTool.img_tool", false, DockSide::Right),
-        dockable("display", "DisplayTool.display", false, DockSide::Right),
+        dockable(
+            "image-tools",
+            "ImageTool.img_tool",
+            false,
+            DockSide::Right,
+            empty(),
+        ),
+        dockable(
+            "display",
+            "DisplayTool.display",
+            false,
+            DockSide::Right,
+            empty(),
+        ),
     ]
+}
+
+/// Files chosen in a file input.
+fn selected_files(input: &web_sys::HtmlInputElement) -> Vec<web_sys::File> {
+    let Some(list) = input.files() else {
+        return Vec::new();
+    };
+    (0..list.length()).filter_map(|i| list.get(i)).collect()
 }
 
 /// Check items of View ▸ Tools and View ▸ Explorer, checked while their dockable is not closed.
@@ -118,8 +164,9 @@ fn dockable_menu_items(docking: Docking) -> (Vec<MenuItem>, Vec<MenuItem>) {
                     .is_some_and(|p| p.mode != DockMode::Closed)
             })
         };
-        let checked = RwSignal::new(open());
-        // The menu flips the check box itself; the layout stays the reference.
+        let checked = RwSignal::new(false);
+        // Set at once, then on each change of the layout; the menu flips the check box itself
+        // but the layout stays the reference.
         Effect::new(move |_| checked.set(open()));
         let item = MenuItem::Check {
             id: dockable.id,

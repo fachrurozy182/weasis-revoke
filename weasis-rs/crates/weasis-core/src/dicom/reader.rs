@@ -135,7 +135,15 @@ fn has_dicm_prefix(bytes: &[u8]) -> bool {
 // sets without it; like dcm4che, the encoding is guessed from the first element.
 // Big Endian bare data sets are not supported.
 fn read_without_file_meta(bytes: &[u8]) -> Result<DefaultDicomObject> {
-    let transfer_syntax = if looks_like_explicit_vr(bytes) {
+    let explicit = looks_like_explicit_vr(bytes);
+    // The parser allocates a value before reading it: a length read from bytes that are not
+    // DICOM would make it allocate gigabytes, which takes seconds in WebAssembly.
+    if !element_lengths_fit(bytes, explicit) {
+        return Err(Error::UnreadableDicom(
+            "no DICOM marker and element lengths beyond the end of the data".to_owned(),
+        ));
+    }
+    let transfer_syntax = if explicit {
         EXPLICIT_VR_LITTLE_ENDIAN.erased()
     } else {
         IMPLICIT_VR_LITTLE_ENDIAN.erased()
@@ -154,6 +162,49 @@ fn read_without_file_meta(bytes: &[u8]) -> Result<DefaultDicomObject> {
     data_set
         .with_meta(FileMetaTableBuilder::new().transfer_syntax(transfer_syntax.uid()))
         .map_err(|error| Error::UnreadableDicom(error.to_string()))
+}
+
+/// Whether the declared length of each top-level element ends within `bytes`; the check stops at
+/// the first undefined length (sequences and items are left to the parser). PS3.5 §7.1.
+fn element_lengths_fit(bytes: &[u8], explicit: bool) -> bool {
+    // VRs with a reserved field and a 4-byte length in Explicit VR (PS3.5 Table 7.1-1).
+    const LONG_VRS: [&[u8]; 13] = [
+        b"OB", b"OD", b"OF", b"OL", b"OV", b"OW", b"SQ", b"SV", b"UC", b"UN", b"UR", b"UT", b"UV",
+    ];
+    let u16_at = |at: usize| {
+        bytes
+            .get(at..at + 2)
+            .map(|b| u16::from_le_bytes([b[0], b[1]]))
+    };
+    let u32_at = |at: usize| {
+        bytes
+            .get(at..at + 4)
+            .map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
+    };
+    let mut position = 0;
+    while position < bytes.len() {
+        let long_vr = bytes
+            .get(position + 4..position + 6)
+            .is_some_and(|vr| LONG_VRS.contains(&vr));
+        // (header size, value length)
+        let (header, length) = if !explicit {
+            (8, u32_at(position + 4))
+        } else if long_vr {
+            (12, u32_at(position + 8))
+        } else {
+            (8, u16_at(position + 6).map(u32::from))
+        };
+        let next = match length {
+            None => return false,
+            Some(u32::MAX) => return true,
+            Some(length) => (position + header).checked_add(length as usize),
+        };
+        match next {
+            Some(next) => position = next,
+            None => return false,
+        }
+    }
+    position == bytes.len()
 }
 
 /// Explicit VR encodes two uppercase letters (the VR) after the 4-byte tag (PS3.5 §7.1.2).
@@ -191,6 +242,25 @@ mod tests {
         let file = read_dicom(&testdata("pydicom/test-SR.dcm")).expect("readable");
         assert!(!file.has_pixel_data());
         assert_eq!(file.number_of_frames(), 0);
+    }
+
+    #[test]
+    fn element_lengths_must_fit_in_the_data() {
+        // (0010,0010) PN "AB" in Explicit then Implicit VR Little Endian.
+        let explicit = [0x10, 0, 0x10, 0, b'P', b'N', 2, 0, b'A', b'B'];
+        assert!(element_lengths_fit(&explicit, true));
+        assert!(
+            !element_lengths_fit(&explicit[..9], true),
+            "truncated value"
+        );
+        let implicit = [0x10, 0, 0x10, 0, 2, 0, 0, 0, b'A', b'B'];
+        assert!(element_lengths_fit(&implicit, false));
+        assert!(
+            !element_lengths_fit(b"not dicom", false),
+            "length from text"
+        );
+        let undefined = [0x10, 0, 0x10, 0, 0xff, 0xff, 0xff, 0xff];
+        assert!(element_lengths_fit(&undefined, false), "left to the parser");
     }
 
     #[test]

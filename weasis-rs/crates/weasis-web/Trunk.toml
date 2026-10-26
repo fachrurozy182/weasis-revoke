@@ -3,3 +3,6 @@
 [build]
 target = "index.html"
 dist = "dist"
+# Stable file names: the page starts the import worker by the name of its loader
+# (`import_worker_loader.js`), which Trunk does not tell the page.
+filehash = false

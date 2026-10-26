@@ -3,6 +3,7 @@
 //! Java reference: `weasis-base/weasis-base-ui` (`WeasisWin`) and the viewer/explorer modules.
 
 mod app;
+mod explorer;
 mod gallery;
 mod i18n;
 mod shell;

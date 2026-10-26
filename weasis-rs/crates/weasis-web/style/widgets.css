@@ -267,3 +267,11 @@
   height: 260px;
   margin-top: 16px;
 }
+
+/* A check box with its label (JCheckBox). */
+.w-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+}

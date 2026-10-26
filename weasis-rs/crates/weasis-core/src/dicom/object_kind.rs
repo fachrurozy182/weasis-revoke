@@ -5,6 +5,7 @@
 //! the `weasis-dicom-rt`, `-sr`, `-au` and `-wave` modules.
 
 use dicom_dictionary_std::tags;
+use serde::{Deserialize, Serialize};
 
 use super::DicomFile;
 
@@ -18,7 +19,7 @@ const COLOR_PALETTE: &str = "1.2.840.10008.5.1.4.1.1.39.1";
 const VIDEO_TRANSFER_SYNTAX_PREFIX: &str = "1.2.840.10008.1.2.4.10";
 
 /// The kind of a DICOM object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub enum ObjectKind {
     /// Single or multi-frame image.
     #[default]

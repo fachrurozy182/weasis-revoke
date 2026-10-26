@@ -8,7 +8,10 @@
     <link data-trunk rel="css" href="style/weasis.css" />
     <link data-trunk rel="css" href="style/widgets.css" />
     <link data-trunk rel="css" href="style/shell.css" />
-    <link data-trunk rel="rust" data-wasm-opt="z" />
+    <link data-trunk rel="css" href="style/explorer.css" />
+    <link data-trunk rel="rust" data-bin="weasis-web" data-wasm-opt="z" />
+    <!-- Reads the imported files away from the interface thread (decision D3). -->
+    <link data-trunk rel="rust" data-bin="import_worker" data-type="worker" data-loader-shim data-wasm-opt="z" />
   </head>
   <body></body>
 </html>

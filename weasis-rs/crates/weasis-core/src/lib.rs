@@ -8,6 +8,7 @@
 
 pub mod dicom;
 pub mod error;
+pub mod explorer;
 pub mod geometry;
 pub mod gui;
 pub mod image;

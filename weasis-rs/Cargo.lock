@@ -2834,10 +2834,12 @@ name = "weasis-web"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
+ "dicom-dictionary-std",
  "js-sys",
  "leptos",
  "serde",
  "serde_json",
+ "wasm-bindgen",
  "weasis-core",
  "web-sys",
 ]
