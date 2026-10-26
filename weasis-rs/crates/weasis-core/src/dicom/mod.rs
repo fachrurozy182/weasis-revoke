@@ -13,6 +13,7 @@ mod media;
 mod object_kind;
 pub mod pixel;
 mod reader;
+mod ultrasound;
 
 pub use archive::{ArchiveEntry, DICOMDIR, read_zip, root_dicomdir};
 pub use content_order::ContentOrder;
@@ -24,3 +25,6 @@ pub use key_object::{KeyImage, KeyObject};
 pub use media::{EncapsulatedDocument, VideoPlayback, VideoStream};
 pub use object_kind::{ObjectKind, object_kind};
 pub use reader::{DicomFile, read_dicom};
+pub use ultrasound::{
+    UltrasoundRegion, ultrasound_regions, unique_spatial_calibration, units_name,
+};

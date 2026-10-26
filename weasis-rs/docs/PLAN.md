@@ -175,7 +175,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [x] **1.10** DICOMDIR (`DicomDirLoader`) & ZIP (`DicomZipCodec`).
 - [x] **1.11** PR (`PresentationStateReader`), KO & rejected KO, hidden series.
 - [x] **1.12** Info pojok per modalitas (`ModalityView`, `ModalityViewJson`, `CornerInfoData`).
-- [ ] **1.13** PDF terenkapsulasi, video, US region (`Ultrasound`, `SpecialElementRegion`).
+- [x] **1.13** PDF terenkapsulasi, video, US region (`Ultrasound`).
 - [ ] **1.14** Statistik & histogram (`ImageStatistics`, `ValueHistogram`), unit (`Unit`, `QuantityKind`).
 - [ ] **1.15** Masking identitas & redaksi piksel (`Identity-Masking.md`, `Redaction`, `KarnakMasks`).
 
@@ -256,7 +256,7 @@ Setiap langkah di fase ini besar; wajib dipecah jadi sub-langkah sebelum dikerja
 - [ ] **6.2** Curved MPR & cross-section (`mpr/cmpr/*`, `mpr-curved.md`).
 - [ ] **6.3** MIP (`mip/*`).
 - [ ] **6.4** Fusion PET/CT (`fusion/*`, `fusion-architecture.md`).
-- [ ] **6.5** Segmentasi DICOM SEG (`codec/seg/*`, `SegmentationTool`, `imp/seg/*`).
+- [ ] **6.5** Segmentasi DICOM SEG (`codec/seg/*`, `SpecialElementRegion`, `SegmentationTool`, `imp/seg/*`).
 - [ ] **6.6** SR viewer (`weasis-dicom-sr`).
 - [ ] **6.7** RT: struktur, dosis, isodosis, DVH (`weasis-dicom-rt`).
 - [ ] **6.8** Waveform ECG + pengukuran (`weasis-dicom-wave`).

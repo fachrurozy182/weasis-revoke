@@ -2,8 +2,8 @@
 
 Development tool only (not part of the application). It creates small files for the
 object types that have no freely licensed public sample: CT/PET volumes, MONOCHROME1,
-Key Object, Segmentation, Presentation State, display shutters, encapsulated PDF, audio, video
-and ZIP.
+Key Object, Segmentation, Presentation State, display shutters, ultrasound regions,
+encapsulated PDF, audio, video and ZIP.
 
 Usage (from `weasis-rs/`):
     python3 -m pip install pydicom==3.0.1 numpy
@@ -40,6 +40,7 @@ CT_IMAGE = "1.2.840.10008.5.1.4.1.1.2"
 PET_IMAGE = "1.2.840.10008.5.1.4.1.1.128"
 CR_IMAGE = "1.2.840.10008.5.1.4.1.1.1"
 XA_IMAGE = "1.2.840.10008.5.1.4.1.1.12.1"
+US_IMAGE = "1.2.840.10008.5.1.4.1.1.6.1"
 KEY_OBJECT = "1.2.840.10008.5.1.4.1.1.88.59"
 SEGMENTATION = "1.2.840.10008.5.1.4.1.1.66.4"
 GRAYSCALE_PR = "1.2.840.10008.5.1.4.1.1.11.1"
@@ -215,6 +216,34 @@ def xa_shutter() -> Dataset:
     ds.ShutterPresentationColorCIELabValue = [
         round(53.24 * 65535 / 100), round((80.09 + 128) * 65535 / 255),
         round((67.20 + 128) * 65535 / 255)]
+    return ds
+
+
+def us_regions() -> Dataset:
+    """Ultrasound image with a 2D tissue region calibrated in cm (top) and a PW Doppler
+    spectral region in cm/s over seconds (bottom)."""
+    ds = new_dataset(US_IMAGE, uid(90, 1))
+    set_series(ds, "US", uid(90), 10, "US regions")
+    set_monochrome_pixels(ds, np.full((120, 160), 64, dtype=np.uint16))
+    ds.InstanceNumber = 1
+
+    def region(bounds, spatial_format, data_type, units, delta):
+        item = Dataset()
+        (item.RegionLocationMinX0, item.RegionLocationMinY0,
+         item.RegionLocationMaxX1, item.RegionLocationMaxY1) = bounds
+        item.RegionSpatialFormat = spatial_format
+        item.RegionDataType = data_type
+        item.RegionFlags = 0
+        item.PhysicalUnitsXDirection, item.PhysicalUnitsYDirection = units
+        item.PhysicalDeltaX, item.PhysicalDeltaY = delta
+        item.ReferencePixelX0 = 0
+        item.ReferencePixelY0 = 0
+        return item
+
+    ds.SequenceOfUltrasoundRegions = Sequence([
+        region((0, 0, 159, 79), 1, 1, (3, 3), (0.025, 0.025)),
+        region((0, 80, 159, 119), 3, 3, (4, 7), (0.01, -2.5)),
+    ])
     return ds
 
 
@@ -555,6 +584,7 @@ def main() -> None:
     save(presentation_state(ct), "pr-annotation.dcm")
     save(xa_shutter(), "xa-shutter.dcm")
     save(pr_bitmap_shutter(ct), "pr-bitmap-shutter.dcm")
+    save(us_regions(), "us-regions.dcm")
     save(encapsulated_pdf(), "encapsulated-pdf.dcm")
     save(audio(), "audio-440hz.dcm")
 
