@@ -140,7 +140,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 ### Fase 0 — Persiapan & uji kelayakan
 - [x] **0.1** Workspace `weasis-rs/` (4 crate kosong, `rust-toolchain.toml`, `.gitignore`).
   Verifikasi: `cargo check --workspace`.
-- [ ] **0.2** Target `wasm32-unknown-unknown` + Trunk; catat versi di `PROGRESS.md`.
+- [x] **0.2** Target `wasm32-unknown-unknown` + Trunk; catat versi di `PROGRESS.md`.
   Verifikasi: `trunk --version`, `rustup target list --installed`.
 - [ ] **0.3** Data uji di `testdata/` + `testdata/README.md` (sumber & lisensi per file).
   Wajib: CT, MR, CR/DX (MONOCHROME1), US RGB, multiframe, PET+CT (fusion), PR, KO, SEG,
