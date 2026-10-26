@@ -13,6 +13,7 @@ mod preset_list;
 mod render;
 mod shutter;
 mod statistics;
+mod unit;
 mod voi;
 mod window_preset;
 
@@ -40,6 +41,7 @@ pub use preset_list::{PresetContext, PresetWindowLevel, preset_list};
 pub use render::render_gray;
 pub use shutter::{Shutter, bitmap_shutter, shutter_color};
 pub use statistics::{Histogram, RegionStatistics, region_statistics};
+pub use unit::{QuantityKind, Unit, UnitSystem};
 pub use voi::{LutShape, VoiLut, VoiParams, VoiWindow, sequence_window};
 pub use window_preset::{
     BUILT_IN_PRESETS_JSON, Domain, PercentOf, PresetLayers, When, WindowPreset, parse_presets,

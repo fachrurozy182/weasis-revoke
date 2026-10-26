@@ -176,7 +176,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [x] **1.11** PR (`PresentationStateReader`), KO & rejected KO, hidden series.
 - [x] **1.12** Info pojok per modalitas (`ModalityView`, `ModalityViewJson`, `CornerInfoData`).
 - [x] **1.13** PDF terenkapsulasi, video, US region (`Ultrasound`).
-- [ ] **1.14** Statistik & histogram (`ImageStatistics`, `ValueHistogram`), unit (`Unit`, `QuantityKind`).
+- [x] **1.14** Statistik & histogram (`ImageStatistics`, `ValueHistogram`), unit (`Unit`, `QuantityKind`).
 - [ ] **1.15** Masking identitas & redaksi piksel (`Identity-Masking.md`, `Redaction`, `KarnakMasks`).
 
 Verifikasi Fase 1: unit test dengan `testdata/` dan nilai yang dihitung dari rumus standar DICOM;

@@ -2,6 +2,7 @@
 
 pub mod anatomy;
 mod archive;
+mod calibration;
 mod charset;
 mod content_order;
 mod dicomdir;
@@ -16,6 +17,7 @@ mod reader;
 mod ultrasound;
 
 pub use archive::{ArchiveEntry, DICOMDIR, read_zip, root_dicomdir};
+pub use calibration::PixelCalibration;
 pub use content_order::ContentOrder;
 pub use dicomdir::{DirInstance, DirSeries, read_dicomdir, resolve_file_id};
 pub use frames::compressed_frame;

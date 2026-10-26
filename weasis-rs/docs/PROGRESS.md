@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.14.a Statistik & histogram
-- **Langkah berikutnya:** 1.14.b Unit & besaran
+- **Langkah terakhir selesai:** 1.14.b Unit & kalibrasi piksel
+- **Langkah berikutnya:** 1.15.a Masking identitas
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -91,7 +91,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.13.a** PDF terenkapsulasi & video (keputusan transcode D14) — `DicomEncapDocElement`, `DicomVideoElement`
 - [x] **1.13.b** Region ultrasound — `Ultrasound` (`SpecialElementRegion` = region SEG/RT, dipindah ke 6.5)
 - [x] **1.14.a** Statistik & histogram — `ImageStatistics`, `ValueHistogram`, `ImageAnalyzer`
-- [ ] **1.14.b** Unit & besaran — `Unit`, `QuantityKind`
+- [x] **1.14.b** Unit & besaran — `Unit`, `QuantityKind`
 - [ ] **1.15.a** Profil masking identitas — `Identity-Masking.md`, `identityMasking*.json`
 - [ ] **1.15.b** Redaksi piksel — `Redaction`, `KarnakMasks`, `PixelPrivacy`
 
@@ -139,3 +139,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.13.a | `dicom::{EncapsulatedDocument, VideoStream, VideoPlayback}`: dokumen (+ Encapsulated Document Length), fragmen video digabung (NOTE: Java hanya fragmen terakhir); D14 dipastikan: H.264 dalam MP4 diputar browser, MPEG-2/HEVC/H.264 mentah ditranskode server |
 | 2026-10-26 | 1.13.b | `dicom::{UltrasoundRegion, ultrasound_regions, unique_spatial_calibration}`: region & kalibrasi cm tunggal seperti Java (tidak dipakai bila tidak persegi); data uji sintetis `us-regions.dcm`; `SpecialElementRegion` ternyata untuk SEG/RT → 6.5 |
 | 2026-10-26 | 1.14.a | `image::{Histogram, RegionStatistics, region_statistics}`: min/max/mean/SD (populasi) langsung dari piksel, median/skew/kurtosis/entropi dari histogram nilai stored (1 bin per nilai untuk integer, 1024 untuk float), dalam unit modalitas; rebin seperti `ValueHistogram` |
+| 2026-10-26 | 1.14.b | `image::{Unit, UnitSystem, QuantityKind}` + `dicom::PixelCalibration` (Pixel Spacing → Imager Pixel Spacing + magnifikasi → Nominal Scanned → kalibrasi US → aspect ratio), sama dengan `DicomImageElement.initPixelConfiguration` |
