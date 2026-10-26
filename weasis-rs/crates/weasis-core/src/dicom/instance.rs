@@ -43,6 +43,9 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
         tags::NUMBER_OF_FRAMES,
         tags::CONCATENATION_UID,
         tags::CONCATENATION_FRAME_OFFSET_NUMBER,
+        // Whether the pixels may show identity (`PixelPrivacy`).
+        tags::BURNED_IN_ANNOTATION,
+        tags::RECOGNIZABLE_VISUAL_FEATURES,
     ];
     for tag in extra_tags
         .into_iter()

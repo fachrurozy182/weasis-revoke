@@ -10,6 +10,7 @@ mod pr_annotation;
 mod pr_display;
 mod presentation_state;
 mod preset_list;
+mod redaction;
 mod render;
 mod shutter;
 mod statistics;
@@ -38,6 +39,7 @@ pub use presentation_state::{
     SeriesReference, VoiItem,
 };
 pub use preset_list::{PresetContext, PresetWindowLevel, preset_list};
+pub use redaction::{PixelPrivacy, RedactionMask, RedactionShape};
 pub use render::render_gray;
 pub use shutter::{Shutter, bitmap_shutter, shutter_color};
 pub use statistics::{Histogram, RegionStatistics, region_statistics};

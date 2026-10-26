@@ -9,6 +9,7 @@
 //! and `TagView.resolveText`.
 
 mod config;
+mod pixel_mask;
 
 use dicom_core::VR;
 use dicom_core::dictionary::{DataDictionary, DataDictionaryEntry, VirtualVr};
@@ -17,6 +18,7 @@ use dicom_object::Tag;
 use sha2::{Digest, Sha256};
 
 pub use config::{AnonymizationAction, MaskedTag, MaskingModel, MaskingProfile, TagCategory};
+pub use pixel_mask::{DeviceKey, MaskRegion, PixelMask, Rejection, best_pixel_mask};
 
 /// What a mask makes of a value.
 #[derive(Debug, Clone, PartialEq, Eq)]

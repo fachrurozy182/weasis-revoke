@@ -4,8 +4,6 @@
 //! Java reference: `weasis-core/src/main/java/org/weasis/core/api/media/data/MaskingModel.java`,
 //! `MaskingModelRegistry.java`, `MaskingProfile.java`, `TagCategory.java` and
 //! `AnonymizationAction.java`; documents `identityMasking.json` and `identityMasking-dicom.json`.
-//
-// TODO(1.15.b): read the `masks` block (pixel masks per device) with the redaction.
 
 use std::collections::HashMap;
 
@@ -14,6 +12,7 @@ use dicom_dictionary_std::StandardDataDictionary;
 use dicom_object::Tag;
 use serde::Deserialize;
 
+use super::pixel_mask::{PixelMask, PixelMaskJson};
 use crate::error::{Error, Result};
 
 /// Built-in profiles and Weasis-internal tags.
@@ -137,6 +136,7 @@ impl MaskingProfile {
 pub struct MaskingModel {
     categories: HashMap<MaskedTag, TagCategory>,
     profiles: Vec<MaskingProfile>,
+    masks: Vec<PixelMask>,
     session_profile: Option<String>,
     ai_profile: Option<String>,
     locked: bool,
@@ -196,6 +196,16 @@ impl MaskingModel {
         if let Some(id) = document.ai_profile.filter(|id| self.profile(id).is_some()) {
             self.ai_profile = Some(id);
         }
+        // Each entry is read on its own: an invalid one is skipped, not the whole document.
+        let masks = document.masks.into_iter().filter_map(|entry| {
+            serde_json::from_value::<PixelMaskJson>(entry)
+                .ok()?
+                .into_mask()
+        });
+        for mask in masks {
+            self.masks.retain(|m| m.id != mask.id);
+            self.masks.push(mask);
+        }
         self.locked |= document.locked;
         Ok(())
     }
@@ -230,6 +240,11 @@ impl MaskingModel {
     pub fn ai_profile(&self) -> Option<&MaskingProfile> {
         self.ai_profile.as_deref().and_then(|id| self.profile(id))
     }
+
+    /// The device library, later layers last.
+    pub fn pixel_masks(&self) -> &[PixelMask] {
+        &self.masks
+    }
 }
 
 #[derive(Deserialize)]
@@ -247,6 +262,8 @@ struct DocumentJson {
     session_profile: Option<String>,
     #[serde(default)]
     ai_profile: Option<String>,
+    #[serde(default)]
+    masks: Vec<serde_json::Value>,
 }
 
 #[derive(Deserialize)]

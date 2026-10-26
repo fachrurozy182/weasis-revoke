@@ -14,8 +14,8 @@ pub use attributes::Attributes;
 pub use hidden::HiddenObjects;
 pub use level::Level;
 pub use masking::{
-    AnonymizationAction, IdentityMask, MaskedTag, MaskedValue, MaskingModel, MaskingProfile,
-    TagCategory,
+    AnonymizationAction, DeviceKey, IdentityMask, MaskRegion, MaskedTag, MaskedValue, MaskingModel,
+    MaskingProfile, PixelMask, Rejection, TagCategory, best_pixel_mask,
 };
 pub use patient_identity::{NO_VALUE, PatientIdentity};
 pub use sort::{SortKey, slice_position, sort_instances};

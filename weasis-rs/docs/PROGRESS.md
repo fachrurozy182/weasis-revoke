@@ -5,9 +5,9 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 
 ## Status sekarang
 
-- **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.15.a Masking identitas
-- **Langkah berikutnya:** 1.15.b Redaksi piksel
+- **Fase:** 2 — Kerangka UI & explorer (Fase 0 & 1 selesai; 0.5 ditunda, D12)
+- **Langkah terakhir selesai:** 1.15.b Redaksi piksel (Fase 1 selesai)
+- **Langkah berikutnya:** pecah Fase 2 menjadi sub-langkah, lalu 2.1 Tema & komponen dasar
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -93,7 +93,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.14.a** Statistik & histogram — `ImageStatistics`, `ValueHistogram`, `ImageAnalyzer`
 - [x] **1.14.b** Unit & besaran — `Unit`, `QuantityKind`
 - [x] **1.15.a** Profil masking identitas — `Identity-Masking.md`, `identityMasking*.json`
-- [ ] **1.15.b** Redaksi piksel — `Redaction`, `KarnakMasks`, `PixelPrivacy`
+- [x] **1.15.b** Redaksi piksel — `Redaction`, `KarnakMasks`, `PixelPrivacy`
 
 ## Log sesi
 
@@ -141,3 +141,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.14.a | `image::{Histogram, RegionStatistics, region_statistics}`: min/max/mean/SD (populasi) langsung dari piksel, median/skew/kurtosis/entropi dari histogram nilai stored (1 bin per nilai untuk integer, 1024 untuk float), dalam unit modalitas; rebin seperti `ValueHistogram` |
 | 2026-10-26 | 1.14.b | `image::{Unit, UnitSystem, QuantityKind}` + `dicom::PixelCalibration` (Pixel Spacing → Imager Pixel Spacing + magnifikasi → Nominal Scanned → kalibrasi US → aspect ratio), sama dengan `DicomImageElement.initPixelConfiguration` |
 | 2026-10-26 | 1.15.a | `model::{MaskingModel, MaskingProfile, IdentityMask, MaskedValue, TagCategory, AnonymizationAction}`: `identityMasking*.json` dipakai ulang, layer + `extends` + lock, profil yang tidak menyembunyikan identitas ditolak; pseudonim SHA-256 (crate `sha2`), geser tanggal 30–329 hari dari salt (sama dengan `Arrays.hashCode`); `TagView::masked_text` (REMOVE → kandidat berikutnya, CLEAR → kosong). Salt dari pemanggil (crypto browser/server) |
+| 2026-10-26 | 1.15.b | `image::{PixelPrivacy, RedactionMask, RedactionShape}` + `model::{PixelMask, DeviceKey, MaskRegion, best_pixel_mask}` (blok `masks` di dokumen masking): mask gambar > seri > pustaka perangkat (region yang kategorinya disimpan profil tidak dibakar), isi region = median cincin 4 piksel dengan kernel elips 9×9 OpenCV; konversi Karnak → 7.6. **Fase 1 selesai** |
