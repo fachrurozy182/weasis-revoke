@@ -18,7 +18,7 @@ use super::{
     presentation_overlay_planes,
 };
 use crate::dicom::pixel::Palette;
-use crate::dicom::{DicomFile, first_item, item_f64, item_text};
+use crate::dicom::{ContentOrder, DicomFile, first_item, item_f64, item_text};
 use crate::error::{Error, Result};
 
 /// Presentation State SOP Classes (PS3.4 Annex B).
@@ -157,6 +157,8 @@ pub struct PresentationState {
     pub label: String,
     /// Presentation Creation Date and Time (`YYYYMMDD HHMMSS`), if any.
     pub creation: Option<String>,
+    /// Sort order among the states of an image (newest first).
+    pub order: ContentOrder,
     /// Referenced series (for a blending state without them, those of the underlying layer).
     pub series: Vec<SeriesReference>,
     /// Softcopy VOI LUT items.
@@ -216,6 +218,7 @@ impl PresentationState {
                 )
             }),
             creation: creation(file),
+            order: ContentOrder::from_file(file),
             series,
             voi_items: voi_items(object),
             modality: modality(object),

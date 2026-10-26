@@ -1,6 +1,7 @@
 //! DICOM information model: the Patient → Study → Series → Instance tree.
 
 mod attributes;
+mod hidden;
 mod level;
 mod patient_identity;
 mod sort;
@@ -9,6 +10,7 @@ mod sub_series;
 mod tree;
 
 pub use attributes::Attributes;
+pub use hidden::HiddenObjects;
 pub use level::Level;
 pub use patient_identity::{NO_VALUE, PatientIdentity};
 pub use sort::{SortKey, slice_position, sort_instances};

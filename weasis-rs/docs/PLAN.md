@@ -173,7 +173,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [x] **1.8** Geometri: orientasi, `GeometryOfSlice`, `SlicePlaneGeometry`, lokalizer, intersect.
 - [x] **1.9** Overlay (`OverlayOp`) & shutter (`ShutterOp`).
 - [x] **1.10** DICOMDIR (`DicomDirLoader`) & ZIP (`DicomZipCodec`).
-- [ ] **1.11** PR (`PresentationStateReader`), KO & rejected KO, hidden series.
+- [x] **1.11** PR (`PresentationStateReader`), KO & rejected KO, hidden series.
 - [ ] **1.12** Info pojok per modalitas (`ModalityView`, `ModalityViewJson`, `CornerInfoData`).
 - [ ] **1.13** PDF terenkapsulasi, video, US region (`Ultrasound`, `SpecialElementRegion`).
 - [ ] **1.14** Statistik & histogram (`ImageStatistics`, `ValueHistogram`), unit (`Unit`, `QuantityKind`).
