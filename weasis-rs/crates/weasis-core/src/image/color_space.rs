@@ -46,6 +46,19 @@ impl Rgba {
         [self.red, self.green, self.blue, self.alpha].map(to_byte)
     }
 
+    /// Opaque color of a DICOM CIE L*a*b* value (PS3.3 §C.10.7.1.1: L* scaled to 0..=65535,
+    /// a* and b* offset by 128 and scaled to 0..=65535).
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn from_dicom_lab([l, a, b]: [u16; 3]) -> Self {
+        let scale = |value: u16, range: f64| f64::from(value) * range / 65535.0;
+        let [red, green, blue] = lab_to_rgb([
+            scale(l, 100.0),
+            scale(a, 255.0) - 128.0,
+            scale(b, 255.0) - 128.0,
+        ]);
+        Self::opaque(red as f32, green as f32, blue as f32)
+    }
+
     /// Parses `transparent`, `#rgb`, `#rrggbb` or `#rrggbbaa`.
     pub fn parse(text: &str) -> Option<Self> {
         let text = text.trim();

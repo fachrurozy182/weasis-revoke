@@ -2,7 +2,8 @@
 
 Development tool only (not part of the application). It creates small files for the
 object types that have no freely licensed public sample: CT/PET volumes, MONOCHROME1,
-Key Object, Segmentation, Presentation State, encapsulated PDF, audio, video and ZIP.
+Key Object, Segmentation, Presentation State, display shutters, encapsulated PDF, audio, video
+and ZIP.
 
 Usage (from `weasis-rs/`):
     python3 -m pip install pydicom==3.0.1 numpy
@@ -38,6 +39,7 @@ UID_ROOT = "2.25.1234567890"
 CT_IMAGE = "1.2.840.10008.5.1.4.1.1.2"
 PET_IMAGE = "1.2.840.10008.5.1.4.1.1.128"
 CR_IMAGE = "1.2.840.10008.5.1.4.1.1.1"
+XA_IMAGE = "1.2.840.10008.5.1.4.1.1.12.1"
 KEY_OBJECT = "1.2.840.10008.5.1.4.1.1.88.59"
 SEGMENTATION = "1.2.840.10008.5.1.4.1.1.66.4"
 GRAYSCALE_PR = "1.2.840.10008.5.1.4.1.1.11.1"
@@ -191,6 +193,65 @@ def cr_monochrome1() -> Dataset:
     ds.WindowWidth = 4096
     ds.ViewPosition = "PA"
     ds.BodyPartExamined = "CHEST"
+    return ds
+
+
+def xa_shutter() -> Dataset:
+    """XA image with a rectangular, a circular and a polygonal shutter (their intersection is
+    shown) in red, given as CIE L*a*b*."""
+    ds = new_dataset(XA_IMAGE, uid(80, 1))
+    set_series(ds, "XA", uid(80), 8, "XA shutters")
+    set_monochrome_pixels(ds, np.full((64, 64), 2048, dtype=np.uint16))
+    ds.InstanceNumber = 1
+    ds.ShutterShape = ["RECTANGULAR", "CIRCULAR", "POLYGONAL"]
+    ds.ShutterLeftVerticalEdge = 5
+    ds.ShutterRightVerticalEdge = 60
+    ds.ShutterUpperHorizontalEdge = 9
+    ds.ShutterLowerHorizontalEdge = 56
+    ds.CenterOfCircularShutter = [33, 33]  # row, column, 1-based
+    ds.RadiusOfCircularShutter = 30
+    ds.VerticesOfThePolygonalShutter = [1, 33, 33, 64, 64, 33, 33, 1]  # a diamond
+    # sRGB red is L* 53.24, a* 80.09, b* 67.20 (DICOM encoding, PS3.3 C.10.7.1.1).
+    ds.ShutterPresentationColorCIELabValue = [
+        round(53.24 * 65535 / 100), round((80.09 + 128) * 65535 / 255),
+        round((67.20 + 128) * 65535 / 255)]
+    return ds
+
+
+def pr_bitmap_shutter(ct: list[Dataset]) -> Dataset:
+    """GSPS with a bitmap shutter (group 6000) hiding all but the central 32 x 32 pixels, and an
+    annotation overlay (group 6002) that must not be taken for the shutter."""
+    target = ct[8]
+    ds = new_dataset(GRAYSCALE_PR, uid(61, 1))
+    set_series(ds, "PR", uid(61), 9, "Bitmap shutter")
+    ds.InstanceNumber = 1
+    ds.ContentLabel = "SHUTTER"
+    ds.ContentCreatorName = "WEASIS^RS"
+    ds.PresentationCreationDate = STUDY_DATE
+    ds.PresentationCreationTime = "120000"
+    ds.ReferencedSeriesSequence = Sequence([series_reference([target])])
+    layer = Dataset()
+    layer.GraphicLayer = "LAYER1"
+    layer.GraphicLayerOrder = 1
+    ds.GraphicLayerSequence = Sequence([layer])
+    ds.ShutterShape = "BITMAP"
+    ds.ShutterOverlayGroup = 0x6000
+    ds.ShutterPresentationValue = 0x8000
+
+    shutter = np.ones((CT_SIZE, CT_SIZE), dtype=np.uint8)
+    shutter[16:48, 16:48] = 0
+    annotation = np.zeros((CT_SIZE, CT_SIZE), dtype=np.uint8)
+    annotation[0, :] = 1
+    for group, bits in ((0x6000, shutter), (0x6002, annotation)):
+        ds.add_new((group, 0x0010), "US", CT_SIZE)
+        ds.add_new((group, 0x0011), "US", CT_SIZE)
+        ds.add_new((group, 0x0040), "CS", "G")
+        ds.add_new((group, 0x0050), "SS", [1, 1])
+        ds.add_new((group, 0x0100), "US", 1)
+        ds.add_new((group, 0x0102), "US", 0)
+        ds.add_new((group, 0x3000), "OW", np.packbits(bits.ravel(), bitorder="little").tobytes())
+    ds.add_new((0x6002, 0x1001), "CS", "LAYER1")
+    ds.PresentationLUTShape = "IDENTITY"
     return ds
 
 
@@ -490,6 +551,8 @@ def main() -> None:
     save(key_object(ct), "ko-for-teaching.dcm")
     save(segmentation(ct), "seg-sphere.dcm")
     save(presentation_state(ct), "pr-annotation.dcm")
+    save(xa_shutter(), "xa-shutter.dcm")
+    save(pr_bitmap_shutter(ct), "pr-bitmap-shutter.dcm")
     save(encapsulated_pdf(), "encapsulated-pdf.dcm")
     save(audio(), "audio-440hz.dcm")
 

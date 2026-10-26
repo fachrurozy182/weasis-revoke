@@ -78,8 +78,8 @@ impl OverlayPlane {
         u32::try_from(index).ok().filter(|&i| i < self.frames)
     }
 
-    /// Sets the mask pixels covered by the overlay bits of one image frame.
-    fn draw(&self, mask: &mut [bool], width: usize, image_frame: u32) {
+    /// Sets the mask pixels covered by the overlay bits of one image frame (0-based).
+    pub fn draw(&self, mask: &mut [bool], width: usize, image_frame: u32) {
         let Some(frame) = self.frame_for(image_frame) else {
             return;
         };

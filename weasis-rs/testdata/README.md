@@ -20,6 +20,7 @@ berlisensi bebas. Total ±9 MB.
 | Multiframe | `pydicom/emri_small.dcm` (10), `pydicom/eCT_Supplemental.dcm` (enhanced CT), `pydicom/examples_ybr_color.dcm` (30), `weasis-dicom-tools/jpeg2000-multiframe-multifragments.dcm` (19) |
 | PET + CT (fusion) | `synthetic/pet-series/` + `synthetic/ct-series/` (frame of reference sama) |
 | Presentation State | `synthetic/pr-annotation.dcm`, `weasis-dicom-tools/prLUTs.dcm` (+ `imageForPrLUTs.dcm`), `weasis-dicom-tools/prOverlay.dcm` (+ `overlay.dcm`) |
+| Display shutter (persegi, lingkaran, poligon, warna CIELab; bitmap di PR) | `synthetic/xa-shutter.dcm`, `synthetic/pr-bitmap-shutter.dcm` |
 | Key Object | `synthetic/ko-for-teaching.dcm` |
 | Modality LUT Sequence / VOI LUT Sequence | `pydicom/mlut_18.dcm` / `pydicom/vlut_04.dcm` |
 | Float Pixel Data | `pydicom/parametric_map_float.dcm` |
