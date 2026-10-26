@@ -51,8 +51,9 @@ desktop** (dibaca langsung dari source code Swing-nya).
 | D12 | Uji coba terhadap aplikasi Java (golden) dan server PACS **ditunda sampai pemilik repo menginstruksikan**. Selama itu, verifikasi langkah = build, lint, dan test otomatis milik `weasis-rs` (unit test & e2e) | Permintaan pengguna; JDK 25+ belum tersedia |
 | D13 | Semua kode mengikuti [`CODING-GUIDE.md`](CODING-GUIDE.md): rapi, mudah dibaca, setiap file menyebut kelas Java acuannya | Pemilik repo akan memperbaiki kode sendiri |
 | D14 | Codec di browser, semuanya **murni Rust**: `dicom-pixeldata` (native, deflate, RLE), `oxiarc-jpeg` (JPEG baseline/extended/lossless), `pure_jpegls` (JPEG-LS 1 komponen), `oxideav-jpeg2000` (JPEG 2000 & HTJ2K). JPEG-LS multi-komponen (RGB) di-decode **server**. Video: H.264 diputar langsung oleh browser; MPEG-2 & HEVC di-transcode server (dipastikan di langkah 1.13) | Hasil uji 0.4: semua lulus di WASM dan cocok dengan codec C (lossless identik, lossy selisih ≤ 1). `openjp2` ditolak (memicu *undefined behavior*), `hayro-jpeg2000` ditolak (tanpa HTJ2K, tanpa clamp) |
+| D15 | Matematika vektor/matriks/quaternion pakai `glam` (`DVec3`, `DMat4`, `DQuat`), pengganti JOML di Java | Murni Rust, jalan di WASM, API dekat dengan JOML sehingga port geometri & MPR mudah dibaca |
 
-Keputusan baru ditambahkan di tabel ini (D15, D16, …) beserta alasannya.
+Keputusan baru ditambahkan di tabel ini (D16, D17, …) beserta alasannya.
 
 ## 3. Arsitektur
 

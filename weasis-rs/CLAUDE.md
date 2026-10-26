@@ -32,7 +32,7 @@ Alat yang dibutuhkan (versi di `docs/PROGRESS.md` §Lingkungan): `trunk`, dan
 ## Aturan
 
 - Jangan mengubah kode Java; hanya dibaca sebagai acuan.
-- Keputusan baru dicatat di PLAN.md §2 (D15, D16, …); jangan diam-diam mengganti keputusan lama.
+- Keputusan baru dicatat di PLAN.md §2 (D16, D17, …); jangan diam-diam mengganti keputusan lama.
 - Kode wajib mengikuti `weasis-rs/docs/CODING-GUIDE.md`. Daftar fitur: `weasis-rs/docs/FEATURES.md`.
 - Uji coba terhadap aplikasi Java / server PACS hanya atas instruksi pemilik (D12).
 - Acuan `weasis-dicom-tools`: clone `https://github.com/fachrurozy182/weasis-dicom-tools` (branch `master`)

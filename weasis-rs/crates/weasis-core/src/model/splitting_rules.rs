@@ -15,7 +15,8 @@ use std::sync::OnceLock;
 use dicom_dictionary_std::tags;
 use dicom_object::Tag;
 
-use super::{Attributes, ImagePlane};
+use super::Attributes;
+use crate::geometry::{ImagePlane, parse_orientation};
 
 /// Modality whose rules apply when the series modality has none.
 const DEFAULT_MODALITY: &str = "DEFAULT";
@@ -35,9 +36,9 @@ impl RuleKey {
         match self {
             Self::Tag(tag) => attributes.get(tag).map(str::to_owned),
             Self::ImagePlane => {
-                let values = numbers(attributes.get(tags::IMAGE_ORIENTATION_PATIENT)?);
-                let orientation: [f64; 6] = values.try_into().ok()?;
-                Some(ImagePlane::from_orientation(&orientation).name().to_owned())
+                let (row, column) =
+                    parse_orientation(attributes.get(tags::IMAGE_ORIENTATION_PATIENT)?)?;
+                Some(ImagePlane::from_orientation(row, column).name().to_owned())
             }
         }
     }
@@ -293,10 +294,6 @@ fn contains_text(value: Option<&str>, text: &str, ignore_case: bool) -> bool {
 /// The values of a multi-valued attribute, separated by `\` (PS3.5 §6.4).
 fn split_values(text: &str) -> impl Iterator<Item = &str> {
     text.split('\\').map(str::trim)
-}
-
-fn numbers(text: &str) -> Vec<f64> {
-    split_values(text).filter_map(|v| v.parse().ok()).collect()
 }
 
 #[cfg(test)]
