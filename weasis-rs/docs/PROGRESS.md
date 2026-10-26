@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.8.a Orientasi & label
-- **Langkah berikutnya:** 1.8.b Geometri irisan & perpotongan (lokalizer)
+- **Langkah terakhir selesai:** 1.8.b Geometri irisan & lokalizer
+- **Langkah berikutnya:** 1.9.a Overlay 60xx & embedded
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -79,7 +79,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.7.a** Urutan stack — `SortSeriesStack`
 - [x] **1.7.b** Aturan pemecahan seri (subseries) — `SplittingRules`, `SplittingModalityRules`
 - [x] **1.8.a** Orientasi & label (A/P/L/R/H/F) — `ImageOrientation`, `PatientOrientation`, `geom/*`
-- [ ] **1.8.b** Geometri irisan & perpotongan (lokalizer) — `GeometryOfSlice`, `SlicePlaneGeometry`, `IntersectSlice`, `IntersectVolume`, `LocalizerPoster`
+- [x] **1.8.b** Geometri irisan & perpotongan (lokalizer) — `GeometryOfSlice`, `SlicePlaneGeometry`, `IntersectSlice`, `IntersectVolume`, `LocalizerPoster`
 - [ ] **1.9.a** Overlay 60xx & embedded — `OverlayOp`, `OverlayData`, `EmbeddedOverlay`
 - [ ] **1.9.b** Shutter (rectangular, circular, polygonal, bitmap) — `ShutterOp`
 - [ ] **1.10.a** DICOMDIR — `DicomDirLoader`
@@ -126,3 +126,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.7.a | `model::{SortKey, sort_instances, slice_position}` (6 kriteria Java; nilai hilang di akhir agar urutan total); posisi/orientasi frame pertama disimpan di atribut instance (functional group untuk enhanced) |
 | 2026-10-26 | 1.7.b | `model::{SplittingRules, ImagePlane}` + `DicomModel::add_split_instance`: aturan bawaan DEFAULT/CT/PT/MR (dengan kondisi PROJECTION), sub-seri `#n.<uid>` + `split_number`, concatenation tetap satu seri, video/PDF/SR/waveform satu objek per seri; layer site `seriesSplittingRules.json` menyusul di 7.6 |
 | 2026-10-26 | 1.8.a | modul `geometry` (D15: `glam`): `ImagePlane` (dipindah dari `model`), `same_orientation`, `PatientAxis` + warna, `Direction` biped/quadruped, `labels_from_vectors` (rotasi & flip seperti `InfoLayer`), `labels_from_patient_orientation`; kode quadruped dua huruf dikenali (Java memotongnya) |
+| 2026-10-26 | 1.8.b | `geometry::{SliceGeometry, Localizer, cross_line}`: geometri tampilan (piksel persegi), garis irisan (`IntersectSlice`) & outline slab (`IntersectVolume`), dedup titik terakhir seperti `View2d.getCrossLine`; titik potong dihitung dengan interpolasi eksak (NOTE) |

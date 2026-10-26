@@ -1,17 +1,21 @@
-//! Patient geometry: directions, planes and orientation labels of images.
+//! Patient geometry: directions, planes, orientation labels and cross-lines of images.
 //!
 //! Vectors are `glam::DVec3` in the DICOM patient coordinate system (decision D15).
 
+mod localizer;
 mod orientation;
 mod plane;
+mod slice;
 
 use glam::DVec3;
 
+pub use localizer::{Localizer, cross_line};
 pub use orientation::{
     Direction, OrientationLabels, PatientAxis, direction_codes, labels_from_patient_orientation,
     labels_from_vectors, opposite_codes,
 };
 pub use plane::{ImagePlane, same_orientation};
+pub use slice::SliceGeometry;
 
 /// Row and column direction cosines of an Image Orientation (Patient) value (six numbers
 /// separated by `\`). `None` unless there are exactly six numbers.

@@ -170,7 +170,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [x] **1.5** Preset W/L dari `windowPresets.json` (`WindowPresetRegistry`, `Window-Presets.md`).
 - [x] **1.6** Color map dari `colormaps.json` (`ColorMapRegistry`, `ColorMap-Design.md`).
 - [x] **1.7** Urutan & pemecahan seri (`SortSeriesStack`, `SplittingRules`, `SplittingModalityRules`).
-- [ ] **1.8** Geometri: orientasi, `GeometryOfSlice`, `SlicePlaneGeometry`, lokalizer, intersect.
+- [x] **1.8** Geometri: orientasi, `GeometryOfSlice`, `SlicePlaneGeometry`, lokalizer, intersect.
 - [ ] **1.9** Overlay (`OverlayOp`) & shutter (`ShutterOp`).
 - [ ] **1.10** DICOMDIR (`DicomDirLoader`) & ZIP (`DicomZipCodec`).
 - [ ] **1.11** PR (`PresentationStateReader`), KO & rejected KO, hidden series.
