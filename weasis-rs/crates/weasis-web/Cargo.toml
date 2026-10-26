@@ -9,6 +9,8 @@ repository.workspace = true
 
 [dependencies]
 weasis-core.workspace = true
+leptos.workspace = true
+console_error_panic_hook.workspace = true
 
 [lints]
 workspace = true

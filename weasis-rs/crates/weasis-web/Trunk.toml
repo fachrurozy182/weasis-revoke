@@ -1,0 +1,5 @@
+# Build the frontend with `trunk build` (or `trunk build --release`) from this folder.
+# The output in `dist/` is served by `weasis-server`.
+[build]
+target = "index.html"
+dist = "dist"

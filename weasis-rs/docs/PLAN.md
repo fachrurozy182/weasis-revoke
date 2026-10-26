@@ -154,7 +154,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [ ] **0.5** *(Ditunda sampai instruksi pemilik, D12.)* Nilai acuan (golden): build Weasis Java (butuh JDK 25+, container saat ini
   JDK 21) dan ambil keluaran; jika tidak bisa, pakai rumus standar DICOM (PS3.3 C.11) +
   dcmtk/pydicom. Catat cara yang dipakai. Verifikasi: ≥ 1 file acuan di `testdata/golden/`.
-- [ ] **0.6** Halaman Leptos "hello" disajikan oleh axum. Verifikasi: screenshot Playwright.
+- [x] **0.6** Halaman Leptos "hello" disajikan oleh axum. Verifikasi: screenshot Playwright.
 - [ ] **0.7** CI GitHub Actions khusus `weasis-rs/**`: fmt, clippy, test, `trunk build`.
   Verifikasi: CI hijau.
 - [x] **0.8** `docs/FEATURES.md`: daftar fitur rinci per kelas Java → langkah di rencana ini.

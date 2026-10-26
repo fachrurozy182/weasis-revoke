@@ -20,6 +20,10 @@ cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 cargo test -p weasis-core --target wasm32-unknown-unknown   # test di WebAssembly (Node.js)
+
+# Menjalankan aplikasi: build frontend, lalu jalankan backend (http://127.0.0.1:8080)
+(cd crates/weasis-web && trunk build)
+cargo run -p weasis-server
 ```
 
 Alat yang dibutuhkan (versi di `docs/PROGRESS.md` §Lingkungan): `trunk`, dan

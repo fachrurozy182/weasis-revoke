@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 0 — Persiapan
-- **Langkah terakhir selesai:** 0.4 Uji codec di WASM (keputusan D14)
-- **Langkah berikutnya:** 0.6 Halaman Leptos "hello" disajikan axum (0.5 ditunda, D12)
+- **Langkah terakhir selesai:** 0.6 Halaman Leptos disajikan axum
+- **Langkah berikutnya:** 0.7 CI GitHub Actions untuk `weasis-rs/`
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -22,6 +22,7 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 | target wasm32 | `wasm32-unknown-unknown` (otomatis dari `rust-toolchain.toml`) |
 | wasm-bindgen-cli | 0.2.129 (harus sama dengan versi `wasm-bindgen` di `Cargo.lock`) |
 | Node.js | 22.22 (menjalankan test WASM) |
+| Leptos / axum / tokio | 0.8.22 / 0.8.9 / 1.54.1 |
 
 ## Hasil uji codec WASM (langkah 0.4)
 
@@ -66,3 +67,4 @@ Catatan: `pydicom/JPEG-lossy.dcm` rusak (codec C pun gagal), tidak dipakai.
 | 2026-10-26 | 0.2 | Trunk 0.22.1 & target wasm32 terpasang |
 | 2026-10-26 | 0.3 | `testdata/` 9 MB: pydicom + pydicom-data (MIT), weasis-dicom-tools, sintetis dari `tools/testdata/generate.py` |
 | 2026-10-26 | 0.4 | Codec murni Rust lulus di WASM (D14); JPEG-LS RGB → server |
+| 2026-10-26 | 0.6 | Leptos CSR (`weasis-web`) dibangun Trunk, disajikan `weasis-server` (axum, fallback ke `index.html`); diverifikasi Playwright tanpa error console |
