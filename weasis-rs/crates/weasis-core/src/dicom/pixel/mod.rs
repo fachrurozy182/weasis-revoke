@@ -5,7 +5,7 @@ mod decode;
 mod descriptor;
 mod samples;
 
-pub use color::to_rgb;
+pub use color::{Palette, to_rgb};
 pub use decode::{PixelFrame, decode_frame};
 pub use descriptor::ImageDescriptor;
 pub use samples::Samples;

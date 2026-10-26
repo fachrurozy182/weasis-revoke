@@ -12,7 +12,7 @@
 //! `weasis-core-img/.../org/weasis/opencv/op/ImageConversion.java`.
 
 use dicom_dictionary_std::tags;
-use dicom_object::Tag;
+use dicom_object::{InMemDicomObject, Tag};
 
 use super::{PixelFrame, Samples};
 use crate::dicom::DicomFile;
@@ -107,16 +107,10 @@ fn to_byte(value: f32) -> u8 {
 }
 
 fn apply_palette(mut frame: PixelFrame, file: &DicomFile) -> Result<PixelFrame> {
-    let red = PaletteTable::read(file, PaletteTags::RED)?;
-    let green = PaletteTable::read(file, PaletteTags::GREEN)?;
-    let blue = PaletteTable::read(file, PaletteTags::BLUE)?;
-    let indices: Vec<i64> = (0..frame.samples.len())
+    let palette = Palette::from_item(file.object())?;
+    let rgb = (0..frame.samples.len())
         .filter_map(|index| frame.samples.get_f64(index))
-        .map(|value| value as i64)
-        .collect();
-    let rgb = indices
-        .iter()
-        .flat_map(|&index| [red.lookup(index), green.lookup(index), blue.lookup(index)])
+        .flat_map(|value| palette.lookup(value as i64))
         .collect();
     frame.samples = Samples::U8(rgb);
     frame.descriptor.samples_per_pixel = 3;
@@ -125,6 +119,35 @@ fn apply_palette(mut frame: PixelFrame, file: &DicomFile) -> Result<PixelFrame> 
     frame.descriptor.is_signed = false;
     frame.descriptor.photometric_interpretation = "RGB".to_owned();
     Ok(frame)
+}
+
+/// Red, green and blue tables of a Palette Color Lookup Table (PS3.3 §C.7.6.3.1.5 and
+/// §C.7.9), with 8-bit entries.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Palette {
+    red: PaletteTable,
+    green: PaletteTable,
+    blue: PaletteTable,
+}
+
+impl Palette {
+    /// Reads the palette of a data set or of an item (e.g. a Pseudo-Color Presentation State).
+    pub fn from_item(item: &InMemDicomObject) -> Result<Self> {
+        Ok(Self {
+            red: PaletteTable::read(item, PaletteTags::RED)?,
+            green: PaletteTable::read(item, PaletteTags::GREEN)?,
+            blue: PaletteTable::read(item, PaletteTags::BLUE)?,
+        })
+    }
+
+    /// RGB color of an index; indices outside the table get the first or last color.
+    pub fn lookup(&self, index: i64) -> [u8; 3] {
+        [
+            self.red.lookup(index),
+            self.green.lookup(index),
+            self.blue.lookup(index),
+        ]
+    }
 }
 
 /// Tags of one color channel of a palette.
@@ -153,14 +176,14 @@ impl PaletteTags {
 }
 
 /// One channel of a palette, reduced to 8-bit entries like in the Java viewer.
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct PaletteTable {
     first_mapped_value: i64,
     entries: Vec<u8>,
 }
 
 impl PaletteTable {
-    fn read(file: &DicomFile, tags: PaletteTags) -> Result<Self> {
-        let object = file.object();
+    fn read(object: &InMemDicomObject, tags: PaletteTags) -> Result<Self> {
         let descriptor: Vec<i64> = object
             .element(tags.descriptor)
             .ok()

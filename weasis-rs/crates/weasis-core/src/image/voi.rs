@@ -10,6 +10,7 @@
 //! (`buildPresetFromLutData`) and `weasis-core-img/.../opencv/op/lut/LutShape.java`.
 
 use dicom_dictionary_std::tags;
+use dicom_object::InMemDicomObject;
 
 use super::LookupTable;
 use crate::dicom::pixel::ImageDescriptor;
@@ -75,22 +76,28 @@ impl VoiLut {
     /// Reads the VOI attributes of `frame`, from the Frame VOI LUT functional group of enhanced
     /// objects or from the data set.
     pub fn from_file(file: &DicomFile, frame: u32, descriptor: &ImageDescriptor) -> Self {
-        let group = frame_macro(file, frame, tags::FRAME_VOILUT_SEQUENCE);
+        let object: &InMemDicomObject = file.object();
+        match frame_macro(file, frame, tags::FRAME_VOILUT_SEQUENCE) {
+            Some(group) => Self {
+                tables: Self::from_item(object, descriptor.is_signed).tables,
+                ..Self::from_item(group, descriptor.is_signed)
+            },
+            None => Self::from_item(object, descriptor.is_signed),
+        }
+    }
+
+    /// Reads the VOI attributes of one item: a data set, a functional group or a Softcopy VOI
+    /// LUT Sequence item of a Presentation State.
+    pub fn from_item(item: &InMemDicomObject, signed_input: bool) -> Self {
         let numbers = |tag| -> Vec<f64> {
-            let element = match group {
-                Some(item) => item.element(tag).ok(),
-                None => file.object().element(tag).ok(),
-            };
-            element
+            item.element(tag)
+                .ok()
                 .and_then(|e| e.to_multi_float64().ok())
                 .unwrap_or_default()
         };
-        let explanations: Vec<String> = match group {
-            Some(item) => item_text(item, tags::WINDOW_CENTER_WIDTH_EXPLANATION),
-            None => file.text(tags::WINDOW_CENTER_WIDTH_EXPLANATION),
-        }
-        .map(|text| text.split('\\').map(str::to_owned).collect())
-        .unwrap_or_default();
+        let explanations: Vec<String> = item_text(item, tags::WINDOW_CENTER_WIDTH_EXPLANATION)
+            .map(|text| text.split('\\').map(str::to_owned).collect())
+            .unwrap_or_default();
 
         let windows = numbers(tags::WINDOW_CENTER)
             .into_iter()
@@ -106,23 +113,19 @@ impl VoiLut {
                     .cloned(),
             })
             .collect();
-        let function = match group {
-            Some(item) => item_text(item, tags::VOILUT_FUNCTION),
-            None => file.text(tags::VOILUT_FUNCTION),
-        }
-        .map(|text| LutShape::from_voi_lut_function(&text))
-        .unwrap_or(LutShape::Linear);
+        let function = item_text(item, tags::VOILUT_FUNCTION)
+            .map(|text| LutShape::from_voi_lut_function(&text))
+            .unwrap_or(LutShape::Linear);
 
-        let tables = file
-            .object()
+        let tables = item
             .element(tags::VOILUT_SEQUENCE)
             .ok()
             .and_then(|element| element.items())
             .unwrap_or_default()
             .iter()
-            .filter_map(|item| {
-                let table = LookupTable::from_item(item, descriptor.is_signed).ok()?;
-                Some((table, item_text(item, tags::LUT_EXPLANATION)))
+            .filter_map(|lut| {
+                let table = LookupTable::from_item(lut, signed_input).ok()?;
+                Some((table, item_text(lut, tags::LUT_EXPLANATION)))
             })
             .collect();
         Self {

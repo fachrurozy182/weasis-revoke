@@ -229,7 +229,7 @@ def pr_bitmap_shutter(ct: list[Dataset]) -> Dataset:
     ds.ContentCreatorName = "WEASIS^RS"
     ds.PresentationCreationDate = STUDY_DATE
     ds.PresentationCreationTime = "120000"
-    ds.ReferencedSeriesSequence = Sequence([series_reference([target])])
+    ds.ReferencedSeriesSequence = Sequence([series_reference([target], "ReferencedImageSequence")])
     layer = Dataset()
     layer.GraphicLayer = "LAYER1"
     layer.GraphicLayerOrder = 1
@@ -262,10 +262,12 @@ def image_reference(image: Dataset) -> Dataset:
     return item
 
 
-def series_reference(images: list[Dataset]) -> Dataset:
+def series_reference(images: list[Dataset], sequence: str = "ReferencedSOPSequence") -> Dataset:
+    """Series item listing its images in `sequence`: Referenced SOP Sequence for a Key Object,
+    Referenced Image Sequence for a Presentation State, Referenced Instance Sequence for a SEG."""
     item = Dataset()
     item.SeriesInstanceUID = images[0].SeriesInstanceUID
-    item.ReferencedSOPSequence = Sequence([image_reference(image) for image in images])
+    setattr(item, sequence, Sequence([image_reference(image) for image in images]))
     return item
 
 
@@ -322,7 +324,7 @@ def segmentation(ct: list[Dataset]) -> Dataset:
     ds.SegmentationType = "BINARY"
     ds.ImageType = ["DERIVED", "PRIMARY"]
     ds.FrameOfReferenceUID = FRAME_OF_REFERENCE_UID
-    ds.ReferencedSeriesSequence = Sequence([series_reference(frames)])
+    ds.ReferencedSeriesSequence = Sequence([series_reference(frames, "ReferencedInstanceSequence")])
 
     segment = Dataset()
     segment.SegmentNumber = 1
@@ -389,7 +391,7 @@ def presentation_state(ct: list[Dataset]) -> Dataset:
     ds.ContentCreatorName = "WEASIS^RS"
     ds.PresentationCreationDate = STUDY_DATE
     ds.PresentationCreationTime = "120000"
-    ds.ReferencedSeriesSequence = Sequence([series_reference([target])])
+    ds.ReferencedSeriesSequence = Sequence([series_reference([target], "ReferencedImageSequence")])
 
     layer = Dataset()
     layer.GraphicLayer = "LAYER1"

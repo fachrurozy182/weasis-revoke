@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.10.b ZIP
-- **Langkah berikutnya:** 1.11.a Presentation State
+- **Langkah terakhir selesai:** 1.11.a1 Presentation State (LUT, VOI, overlay, shutter)
+- **Langkah berikutnya:** 1.11.a2 Anotasi Presentation State
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -84,7 +84,8 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.9.b** Shutter (rectangular, circular, polygonal, bitmap) — `ShutterOp`
 - [x] **1.10.a** DICOMDIR — `DicomDirLoader`
 - [x] **1.10.b** ZIP — `DicomZipCodec`
-- [ ] **1.11.a** Presentation State (VOI, grafik, teks, shutter, area) — `PresentationStateReader`, `PrDicomObject`
+- [x] **1.11.a1** Presentation State: tipe, referensi, VOI, Modality/Presentation LUT, overlay, shutter, blending & palette — `PrDicomObject`, `PresentationStateReader`
+- [ ] **1.11.a2** Presentation State: anotasi grafik & teks, layer, displayed area, rotasi/flip — `PresentationStateReader`, `PrGraphicUtil`
 - [ ] **1.11.b** Key Object, rejected KO, hidden series — `KOSpecialElement`, `RejectedKOSpecialElement`, `HiddenSeriesManager`
 - [ ] **1.12.a** Info pojok per modalitas — `ModalityView`, `ModalityViewJson`, `CornerInfoData`
 - [ ] **1.13.a** PDF terenkapsulasi & video (keputusan transcode D14) — `DicomEncapDocElement`, `DicomVideoElement`
@@ -131,3 +132,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.9.b | `image::{Shutter, bitmap_shutter, shutter_color}`: irisan persegi/lingkaran/poligon, warna CIELab atau P-value, shutter bitmap PR hanya dari grup `Shutter Overlay Group` (NOTE: Java memakai semua overlay PR); data uji sintetis `xa-shutter.dcm`, `pr-bitmap-shutter.dcm` |
 | 2026-10-26 | 1.10.a | `dicom::{read_dicomdir, resolve_file_id, DirSeries}`: offset record dipindai dari byte mentah (dicom-rs tidak menyimpannya; cocok dengan pydicom), record nonaktif & PRIVATE dilewati, seri/instance duplikat digabung seperti Java; resolver File ID tanpa filesystem (huruf kecil, ekstensi tunggal, tolak `..`). Ikon seri disimpan, decode di 2.5 |
 | 2026-10-26 | 1.10.b | `dicom::{read_zip, root_dicomdir}` dengan crate `zip` 9.1.2 (stored/deflate zlib-rs, AES & ZipCrypto, jalan di WASM); `Error::PasswordRequired` agar UI bisa meminta password seperti dialog Java; entri `..` dilewati |
+| 2026-10-26 | 1.11.a1 | `image::PresentationState` (+ `VoiLut::from_item`, `Palette` publik): jenis SOP Class, referensi seri/gambar/frame, VOI per gambar, Modality & Presentation LUT, overlay aktif, shutter, layer blending & palette; 1.11.a dipecah jadi a1/a2. Data sintetis diperbaiki: PR memakai `ReferencedImageSequence`, SEG `ReferencedInstanceSequence` |
