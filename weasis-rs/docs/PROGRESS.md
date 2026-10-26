@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.12.a Info pojok
-- **Langkah berikutnya:** 1.13.a PDF terenkapsulasi & video
+- **Langkah terakhir selesai:** 1.13.a PDF terenkapsulasi & video
+- **Langkah berikutnya:** 1.13.b Region ultrasound
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -88,7 +88,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.11.a2** Presentation State: anotasi grafik & teks, layer, displayed area, rotasi/flip — `PresentationStateReader`, `PrGraphicUtil`
 - [x] **1.11.b** Key Object, rejected KO, hidden series — `KOSpecialElement`, `RejectedKOSpecialElement`, `HiddenSeriesManager`
 - [x] **1.12.a** Info pojok per modalitas — `ModalityView`, `ModalityViewJson`, `CornerInfoData`
-- [ ] **1.13.a** PDF terenkapsulasi & video (keputusan transcode D14) — `DicomEncapDocElement`, `DicomVideoElement`
+- [x] **1.13.a** PDF terenkapsulasi & video (keputusan transcode D14) — `DicomEncapDocElement`, `DicomVideoElement`
 - [ ] **1.13.b** Region ultrasound — `Ultrasound`, `SpecialElementRegion`
 - [ ] **1.14.a** Statistik & histogram — `ImageStatistics`, `ValueHistogram`, `ImageAnalyzer`
 - [ ] **1.14.b** Unit & besaran — `Unit`, `QuantityKind`
@@ -136,3 +136,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.11.a2 | `image::{Annotation, GraphicLayer, GraphicShape, TextObject, DisplayedArea, SpatialTransform, AnnotationSpace}` + `PresentationState::{annotations_for, displayed_area_for}`: titik dalam koordinat gambar; unit DISPLAY dipetakan sesuai PS3.3 (NOTE: Java mencampur urutan skala & rotasi; area 1-based standar). Model XML privat Weasis menyusul di 4.9 |
 | 2026-10-26 | 1.11.b | `dicom::{KeyObject, KeyImage, ContentOrder}` (referensi hierarkis, rejection IOCM, add/remove/toggle frame; NOTE: gambar utuh tetap ditandai saat frame ditambah) + `model::HiddenObjects` (KO, rejection, PR per pasien, terbaru dulu) pengganti `HiddenSeriesManager` |
 | 2026-10-26 | 1.12.a | `image::{CornerLayout, TagView, Corner, format_value}`: tata letak bawaan 4 pojok × 7 baris, atribut pertama yang ada, format `$V`/`:l$n$`/`:f$pola$` (DecimalFormat, half-even), nama PN, tanggal ISO (NOTE: format lokal di UI); layer site `attributesView.json` → 7.6, masking → 1.15 |
+| 2026-10-26 | 1.13.a | `dicom::{EncapsulatedDocument, VideoStream, VideoPlayback}`: dokumen (+ Encapsulated Document Length), fragmen video digabung (NOTE: Java hanya fragmen terakhir); D14 dipastikan: H.264 dalam MP4 diputar browser, MPEG-2/HEVC/H.264 mentah ditranskode server |
