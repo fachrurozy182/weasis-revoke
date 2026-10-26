@@ -3,7 +3,9 @@
 //! Java reference: `weasis-base/weasis-base-ui` (`WeasisWin`) and the viewer/explorer modules.
 
 mod app;
+mod gallery;
 mod theme;
+mod widgets;
 
 fn main() {
     // Show Rust panics in the browser console instead of an opaque "unreachable" error.

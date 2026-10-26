@@ -6,6 +6,7 @@
 
 use leptos::prelude::*;
 
+use crate::gallery::Gallery;
 use crate::theme::Theme;
 
 /// Application version shown on the page, taken from `Cargo.toml`.
@@ -14,12 +15,24 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Root component mounted on `<body>`.
 #[component]
 pub fn App() -> impl IntoView {
+    // `#gallery` shows the base components (fixture of the end-to-end tests).
+    let gallery = window()
+        .location()
+        .hash()
+        .is_ok_and(|hash| hash == "#gallery");
     view! {
         <ThemeStyle />
-        <main>
-            <h1>"Weasis"</h1>
-            <p>"Web DICOM viewer, version " {VERSION}</p>
-        </main>
+        {if gallery {
+            view! { <Gallery /> }.into_any()
+        } else {
+            view! {
+                <main>
+                    <h1>"Weasis"</h1>
+                    <p>"Web DICOM viewer, version " {VERSION}</p>
+                </main>
+            }
+                .into_any()
+        }}
     }
 }
 

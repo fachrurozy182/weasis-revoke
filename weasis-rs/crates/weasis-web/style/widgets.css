@@ -1,0 +1,261 @@
+/*
+ * Base components (src/widgets), after Swing components with the FlatLaf look of Weasis.
+ * Colors and metrics come from the theme variables (src/theme.rs).
+ */
+
+.w-hidden {
+  display: none !important;
+}
+
+/* Buttons: FlatLaf button, arc and minimum width from the theme. */
+.w-button {
+  font: inherit;
+  color: var(--ui-foreground);
+  background: var(--Button-startBackground, var(--color-button));
+  border: 1px solid var(--Button-startBorderColor, var(--color-button));
+  border-radius: var(--button-arc);
+  min-width: var(--Button-minimumSize, 72px);
+  padding: 4px 12px;
+  cursor: default;
+}
+
+.w-button:hover:not(:disabled) {
+  border-color: var(--ui-hoverBorderColor);
+}
+
+.w-button:active:not(:disabled) {
+  border-color: var(--ui-pressedBorderColor);
+}
+
+.w-button:disabled {
+  color: var(--ui-disabledText);
+  background: var(--Button-disabledBackground, var(--ui-disabledBackground));
+  border-color: var(--Button-disabledBorderColor, var(--ui-borderColor));
+}
+
+.w-button-primary {
+  color: var(--Button-default-foreground);
+  background: var(--Button-default-startBackground);
+  border-color: var(--Button-default-startBorderColor);
+}
+
+/* Toolbar buttons: borderless, highlighted on hover and when selected. */
+.w-button-toolbar {
+  min-width: 0;
+  background: transparent;
+  border-color: transparent;
+  border-radius: var(--arc);
+  padding: 4px 6px;
+}
+
+.w-button-toolbar:hover:not(:disabled) {
+  background: var(--color-hl);
+  border-color: transparent;
+}
+
+.w-button.w-selected {
+  color: var(--ui-selectionForeground);
+  background: var(--ui-selectionBackground);
+  border-color: var(--ui-focusedBorderColor);
+}
+
+/* Toolbar: WtoolBar with the ToolBar insets of the theme. */
+.w-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--ToolBar-horizontalToolbarInsets, 6px);
+  background: var(--ToolBar-background);
+}
+
+.w-toolbar-separator {
+  width: 1px;
+  height: 30px;
+  margin: 0 5px;
+  background: var(--ToolBar-separatorColor, var(--ui-separatorColor));
+}
+
+/* Drop-down button and its popup menu. */
+.w-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.w-dropdown-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  border: 4px solid transparent;
+  border-top-color: currentColor;
+  transform: translateY(2px);
+}
+
+.w-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+}
+
+.w-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 100%;
+  margin: 2px 0 0;
+  padding: 6px 4px;
+  list-style: none;
+  color: var(--PopupMenu-foreground);
+  background: var(--PopupMenu-background);
+  border: 1px solid var(--Menu-borderColor, var(--ui-borderColor));
+  border-radius: var(--PopupMenu-borderCornerRadius, 8px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 40%);
+}
+
+.w-menu-item {
+  padding: 4px 12px 4px 26px;
+  border-radius: var(--MenuItem-Selection-arc, 8px);
+  white-space: nowrap;
+  position: relative;
+}
+
+.w-menu-item:hover {
+  color: var(--MenuItem-selectionForeground);
+  background: var(--MenuItem-selectionBackground);
+}
+
+.w-menu-item[aria-checked="true"]::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Slider: JSliderW with its title and labels. */
+.w-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+}
+
+.w-slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--Slider-thumb, var(--color-accent));
+}
+
+.w-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--Label-infoForeground, var(--ui-infoForeground));
+}
+
+/* Collapsible section: borderless header, card border (CollapsiblePanel). */
+.w-collapsible {
+  margin: 6px 3px 2px;
+  border: 1px solid var(--Component-borderColor);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.w-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--arc);
+  padding: 4px 6px;
+}
+
+.w-collapsible-header:hover {
+  background: var(--color-hl);
+}
+
+.w-disclosure {
+  border: 4px solid transparent;
+  border-left-color: currentColor;
+  transition: transform 0.1s;
+}
+
+.w-disclosure.w-open {
+  transform: rotate(90deg) translateX(2px);
+}
+
+.w-collapsible-content {
+  padding: 4px 6px;
+}
+
+/* Modal dialog with the FlatLaf title pane colors. */
+.w-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 35%);
+}
+
+.w-dialog {
+  min-width: 320px;
+  max-width: 90vw;
+  background: var(--OptionPane-background, var(--ui-background));
+  border: 1px solid var(--ui-borderColor);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+}
+
+.w-dialog-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 6px 6px 12px;
+  background: var(--TitlePane-background);
+  border-radius: 8px 8px 0 0;
+}
+
+.w-dialog-close {
+  font-size: 16px;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: var(--arc);
+  width: 28px;
+  height: 28px;
+}
+
+.w-dialog-close:hover {
+  background: var(--TitlePane-Button-hoverBackground, var(--color-hl));
+}
+
+.w-dialog-body {
+  padding: 12px;
+}
+
+.w-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Component gallery (#gallery), used by the end-to-end tests. */
+.gallery-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.gallery-panel {
+  width: 300px;
+}

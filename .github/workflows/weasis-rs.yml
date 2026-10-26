@@ -1,6 +1,7 @@
 name: weasis-rs
 # Checks the Rust web rewrite in `weasis-rs/` (format, lint, tests natively and in
-# WebAssembly, frontend build). Runs only when that folder or this workflow changes.
+# WebAssembly, frontend build, end-to-end tests of the interface). Runs only when that folder or
+# this workflow changes.
 on:
   push:
     paths:
@@ -64,3 +65,21 @@ jobs:
       - name: Build frontend
         working-directory: weasis-rs/crates/weasis-web
         run: trunk build --release
+
+      - name: Install the end-to-end test tools (Playwright, Chromium)
+        working-directory: weasis-rs/tests/e2e
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Test the interface end to end
+        working-directory: weasis-rs/tests/e2e
+        run: npx playwright test
+
+      - name: Keep the screenshots of the end-to-end tests
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: e2e-results
+          path: weasis-rs/tests/e2e/test-results
+          if-no-files-found: ignore

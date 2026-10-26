@@ -24,6 +24,9 @@ cargo test -p weasis-core --target wasm32-unknown-unknown   # test di WebAssembl
 # Menjalankan aplikasi: build frontend, lalu jalankan backend (http://127.0.0.1:8080)
 (cd crates/weasis-web && trunk build)
 cargo run -p weasis-server
+
+# Test end-to-end antarmuka (Playwright + Chromium); build frontend dulu, server dijalankan otomatis
+(cd tests/e2e && npm ci && npx playwright test)
 ```
 
 Alat yang dibutuhkan (versi di `docs/PROGRESS.md` §Lingkungan): `trunk`, dan

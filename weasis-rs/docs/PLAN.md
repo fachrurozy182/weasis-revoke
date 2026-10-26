@@ -183,7 +183,7 @@ Verifikasi Fase 1: unit test dengan `testdata/` dan nilai yang dihitung dari rum
 perbandingan dengan `testdata/golden/` ditambahkan setelah langkah 0.5 dijalankan (D12).
 
 ### Fase 2 — Kerangka UI & explorer
-- [ ] **2.1** Tema dari `Weasis.theme.json`; komponen dasar (tombol, toolbar, dropdown,
+- [x] **2.1** Tema dari `Weasis.theme.json`; komponen dasar (tombol, toolbar, dropdown,
   slider, collapsible panel, dialog) meniru FlatLaf.
 - [ ] **2.2** Jendela utama meniru `WeasisWin`: menu (File, View, Display, Tools, Help),
   toolbar, tab viewer, panel dockable kiri/kanan yang bisa disembunyikan, digeser, di-resize
