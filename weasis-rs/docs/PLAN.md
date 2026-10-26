@@ -7,6 +7,11 @@ keputusan, langkah). Status harian dicatat di [`PROGRESS.md`](PROGRESS.md).
 - Branch kerja: `claude/vibrant-bardeen-k1240f` (berbasis `master`)
 - Kode acuan: Weasis **4.8.0-SNAPSHOT**, branch `master` commit `32fef3339` (2026-10-16),
   ±233 ribu baris Java dalam 1.147 file. Semua rujukan file di dokumen ini relatif ke root repo.
+- Acuan tambahan: repo [`fachrurozy182/weasis-dicom-tools`](https://github.com/fachrurozy182/weasis-dicom-tools)
+  branch `master` (commit `73a359e`, 218 file, ±45 ribu baris). Clone baca-saja:
+  `git clone --depth 1 https://github.com/fachrurozy182/weasis-dicom-tools ../fachrurozy182/weasis-dicom-tools`
+- Dokumen pendukung: [`FEATURES.md`](FEATURES.md) (daftar fitur), [`CODING-GUIDE.md`](CODING-GUIDE.md)
+  (standar kode), [`PROGRESS.md`](PROGRESS.md) (status).
 
 ---
 
@@ -40,7 +45,10 @@ desktop** (dibaca langsung dari source code Swing-nya).
 | D10 | Tampilan meniru desktop dari source: `WeasisWin` (menu & tata letak), `Weasis.theme.json` (warna FlatLaf), toolbar & panel dockable masing-masing modul | Permintaan pengguna |
 | D11 | Acuan tetap commit `32fef3339`. Perubahan master setelahnya tidak dikejar kecuali diputuskan | Target tidak bergerak |
 
-Keputusan baru ditambahkan di tabel ini (D12, D13, …) beserta alasannya.
+| D12 | Uji coba terhadap aplikasi Java (golden) dan server PACS **ditunda sampai pemilik repo menginstruksikan**. Selama itu, verifikasi langkah = build, lint, dan test otomatis milik `weasis-rs` (unit test & e2e) | Permintaan pengguna; JDK 25+ belum tersedia |
+| D13 | Semua kode mengikuti [`CODING-GUIDE.md`](CODING-GUIDE.md): rapi, mudah dibaca, setiap file menyebut kelas Java acuannya | Pemilik repo akan memperbaiki kode sendiri |
+
+Keputusan baru ditambahkan di tabel ini (D14, D15, …) beserta alasannya.
 
 ## 3. Arsitektur
 
@@ -85,9 +93,12 @@ grafik/anotasi digambar di atas canvas.
 | `weasis-launcher` (5 rb) | parameter URL + `weasis-server` | membuka viewer dari aplikasi lain (IHE IID) |
 | `weasis-imageio`, `weasis-opencv`, library `weasis-dicom-tools` (eksternal) | `dicom-pixeldata` + crate Rust | codec & operasi gambar |
 
-Catatan: sebagian logika DICOM (geometri, hanging protocol, manifest, DICOMweb) ada di
-library eksternal `weasis-dicom-tools` yang **tidak ada di repo ini**; perilakunya diambil
-dari cara pemanggilannya dan dari standar DICOM.
+Library eksternal yang dipakai Weasis:
+
+| Library | Versi dipakai master | Isi penting | Source |
+|---|---|---|---|
+| `weasis-dicom-tools` | 5.35.1 | decode & render (`org.dcm4che3.img`), LUT/preset, overlay, PR, geometri (`geom`), hanging protocol (`hp`), manifest (`mf`), DIMSE (`op`), DICOMweb (`web`), Dicomizer, anatomi (`ref`) | repo pengguna, `master` = 5.35.2 (beda patch; perbedaan perilaku dicatat jika ditemukan) |
+| `weasis-core-img` | 5.0.0.1 | operasi gambar OpenCV, LUT & color map (`org.weasis.opencv.*`, `org.weasis.core.util.*`; ±840 import) | **tidak tersedia** (lihat Q2); perilaku diturunkan dari pemanggilan + standar DICOM |
 
 ### 4.2 Data konfigurasi yang dipakai ulang (D7)
 
@@ -119,6 +130,7 @@ Aturan setiap langkah:
    di `PROGRESS.md` (berdasarkan kelas Java acuannya). Langkah yang terlalu besar juga dipecah.
 
 Setiap langkah fitur menulis test: unit test di crate Rust, atau e2e Playwright untuk UI.
+Kode ditulis sesuai [`CODING-GUIDE.md`](CODING-GUIDE.md) (D13).
 Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 `cargo clippy --workspace -- -D warnings`, `cargo test --workspace` lulus, plus test baru langkah itu.
 
@@ -133,15 +145,15 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
   overlay, dan setiap transfer syntax di 0.4. Verifikasi: tabel README lengkap, total < 100 MB.
 - [ ] **0.4** Uji codec di WASM: Implicit/Explicit LE, Explicit BE, Deflate, RLE,
   JPEG baseline 8/12-bit, JPEG lossless, JPEG-LS, JPEG 2000, HTJ2K, video (MPEG-2/4, HEVC).
-  Catat hasil per syntax di `PROGRESS.md`. Yang tidak bisa di WASM → keputusan D12:
+  Catat hasil per syntax di `PROGRESS.md`. Yang tidak bisa di WASM → keputusan baru:
   decode/transcode di server. Verifikasi: `wasm-bindgen-test` lulus untuk syntax yang didukung.
-- [ ] **0.5** Nilai acuan (golden): build Weasis Java (butuh JDK 25+, container saat ini
+- [ ] **0.5** *(Ditunda sampai instruksi pemilik, D12.)* Nilai acuan (golden): build Weasis Java (butuh JDK 25+, container saat ini
   JDK 21) dan ambil keluaran; jika tidak bisa, pakai rumus standar DICOM (PS3.3 C.11) +
   dcmtk/pydicom. Catat cara yang dipakai. Verifikasi: ≥ 1 file acuan di `testdata/golden/`.
 - [ ] **0.6** Halaman Leptos "hello" disajikan oleh axum. Verifikasi: screenshot Playwright.
 - [ ] **0.7** CI GitHub Actions khusus `weasis-rs/**`: fmt, clippy, test, `trunk build`.
   Verifikasi: CI hijau.
-- [ ] **0.8** `docs/FEATURES.md`: daftar fitur rinci per kelas Java → langkah di rencana ini.
+- [x] **0.8** `docs/FEATURES.md`: daftar fitur rinci per kelas Java → langkah di rencana ini.
   Verifikasi: setiap modul §4.1 dan setiap kelas `*Factory`, `*Tool`, `*ToolBar`, `*PrefView`
   tercantum.
 
@@ -162,7 +174,8 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [ ] **1.14** Statistik & histogram (`ImageStatistics`, `ValueHistogram`), unit (`Unit`, `QuantityKind`).
 - [ ] **1.15** Masking identitas & redaksi piksel (`Identity-Masking.md`, `Redaction`, `KarnakMasks`).
 
-Verifikasi Fase 1: unit test dengan `testdata/`, hasil numerik dibandingkan `testdata/golden/`.
+Verifikasi Fase 1: unit test dengan `testdata/` dan nilai yang dihitung dari rumus standar DICOM;
+perbandingan dengan `testdata/golden/` ditambahkan setelah langkah 0.5 dijalankan (D12).
 
 ### Fase 2 — Kerangka UI & explorer
 - [ ] **2.1** Tema dari `Weasis.theme.json`; komponen dasar (tombol, toolbar, dropdown,
@@ -228,7 +241,8 @@ Verifikasi Fase 2: e2e per langkah + screenshot.
 - [ ] **5.6** Kirim: STOW-RS & C-STORE (`SendDicomView`, `StowRS`).
 - [ ] **5.7** Membuka viewer dari aplikasi lain lewat URL (IHE IID, `weasis-launcher`).
 
-Verifikasi Fase 5: test integrasi terhadap dcm4chee/Orthanc di Docker (catat di `PROGRESS.md`
+Verifikasi Fase 5: unit test dengan server tiruan. Test integrasi terhadap dcm4chee/Orthanc
+di Docker hanya atas instruksi pemilik (D12) (catat di `PROGRESS.md`
 jika Docker tidak tersedia; pakai server tiruan).
 
 ### Fase 6 — Modul lanjutan
@@ -272,14 +286,15 @@ Setiap langkah di fase ini besar; wajib dipecah jadi sub-langkah sebelum dikerja
 
 | # | Pertanyaan | Status |
 |---|---|---|
-| Q1 | Server PACS untuk uji integrasi (dcm4chee di Docker, atau ada server sendiri)? | Dibutuhkan sebelum Fase 5 |
+| Q1 | Server PACS untuk uji integrasi (dcm4chee di Docker, atau ada server sendiri)? | Ditunda bersama uji coba (D12) |
+| Q2 | Source `weasis-core-img` 5.0.0.1 tersedia (repo pengguna)? | Dibutuhkan sebelum Fase 1 bila ada; tanpa itu tetap bisa jalan |
 
 ## 8. Risiko
 
 | Risiko | Mitigasi |
 |---|---|
-| Codec JPEG 2000 / JPEG-LS / HTJ2K / video tidak bisa di WASM | Diuji di 0.4; cadangan: decode/transcode di server (D12) |
-| Logika di `weasis-dicom-tools` (eksternal) tidak terlihat | Turunkan dari pemanggilan + standar DICOM; source-nya bisa dibaca dari repo publik jika perlu |
+| Codec JPEG 2000 / JPEG-LS / HTJ2K / video tidak bisa di WASM | Diuji di 0.4; cadangan: decode/transcode di server (keputusan baru) |
+| Source `weasis-core-img` tidak tersedia | Turunkan dari pemanggilan + standar DICOM; minta source ke pemilik (Q2) |
 | Volume besar (MPR, 3D, fusion) melebihi memori browser | Buffer per volume di Worker, tipe data asli (u16), batas memori seperti `Memory-Management.md` |
 | Swing → web: perilaku docking & dialog berbeda | Ikuti tata letak & isi panel, bukan mekanisme Swing-nya |
 | Scope sangat besar (±233 rb baris) | Fase 0–4 dulu agar viewer inti cepat terpakai; fase lanjut dipecah saat dimulai |

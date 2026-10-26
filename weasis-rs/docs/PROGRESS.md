@@ -6,8 +6,9 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 0 — Persiapan
-- **Langkah terakhir selesai:** — (dokumen rencana dibuat)
-- **Langkah berikutnya:** 0.1 Buat workspace `weasis-rs/`
+- **Langkah terakhir selesai:** 0.8 (`FEATURES.md`) + dokumen pendukung
+- **Langkah berikutnya:** 0.1 Buat workspace `weasis-rs/` — **tunggu konfirmasi pemilik untuk mulai coding**
+- **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Hambatan:** tidak ada
 
 ## Lingkungan
@@ -35,3 +36,4 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 |---|---|---|
 | 2026-10-26 | — | Rencana dibuat berdasarkan Weasis 1.21 (branch 1.2.x) |
 | 2026-10-26 | — | Rencana ditulis ulang: acuan pindah ke `master` (4.8.0-SNAPSHOT, `32fef3339`), WADO & semua modul masuk scope, branch kerja dibuat ulang dari `master` |
+| 2026-10-26 | 0.8 | Dokumen pendukung: `FEATURES.md`, `CODING-GUIDE.md`; acuan `weasis-dicom-tools` (`73a359e`); D12 (uji coba ditunda), D13 (standar kode) |
