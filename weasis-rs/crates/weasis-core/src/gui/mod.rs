@@ -5,9 +5,11 @@
 mod key_binding;
 mod shortcut_defaults;
 mod shortcut_manager;
+mod shortcut_table;
 
 pub use key_binding::{KeyBinding, key, key_code_from_browser, key_text, modifier, to_extended};
 pub use shortcut_defaults::id;
 pub use shortcut_manager::{
     PREFERENCE_NODE, ShortcutContext, ShortcutEntry, ShortcutManager, preference_node_name,
 };
+pub use shortcut_table::ShortcutTable;

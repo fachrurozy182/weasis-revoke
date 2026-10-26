@@ -8,6 +8,7 @@
 use leptos::prelude::*;
 
 use super::dock_layout::{DockLayout, DockMode, DockSide};
+use crate::storage;
 
 /// Key of the layout in the browser storage (decision D8).
 const STORAGE_KEY: &str = "weasis.dock-layout";
@@ -40,12 +41,12 @@ pub struct Docking {
 impl Docking {
     /// Registers the dockables over the layout saved in the browser, and saves every change.
     pub fn new(dockables: Vec<Dockable>) -> Self {
-        let mut layout = load_layout().unwrap_or_default();
+        let mut layout: DockLayout = storage::load(STORAGE_KEY).unwrap_or_default();
         for dockable in &dockables {
             layout.register(dockable.id, dockable.side, DockMode::Docked);
         }
         let layout = RwSignal::new(layout);
-        Effect::new(move |_| layout.with(save_layout));
+        Effect::new(move |_| layout.with(|l| storage::save(STORAGE_KEY, l)));
         Self {
             layout,
             dockables: StoredValue::new(dockables),
@@ -249,23 +250,5 @@ fn side_name(side: DockSide) -> &'static str {
         DockSide::Left => "left",
         DockSide::Right => "right",
         DockSide::Bottom => "bottom",
-    }
-}
-
-/// The saved layout; none when storage is unavailable (private mode) or the value is invalid.
-fn load_layout() -> Option<DockLayout> {
-    let text = window()
-        .local_storage()
-        .ok()??
-        .get_item(STORAGE_KEY)
-        .ok()??;
-    serde_json::from_str(&text).ok()
-}
-
-fn save_layout(layout: &DockLayout) {
-    let storage = window().local_storage().ok().flatten();
-    if let (Some(storage), Ok(text)) = (storage, serde_json::to_string(layout)) {
-        // Storage may be full or blocked; the layout then simply is not kept.
-        let _ = storage.set_item(STORAGE_KEY, &text);
     }
 }

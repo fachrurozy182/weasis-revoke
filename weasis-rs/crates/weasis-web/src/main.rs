@@ -6,6 +6,8 @@ mod app;
 mod gallery;
 mod i18n;
 mod shell;
+mod shortcuts;
+mod storage;
 mod theme;
 mod widgets;
 

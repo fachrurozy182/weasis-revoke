@@ -108,6 +108,27 @@ impl WorkingArea {
         }
     }
 
+    /// Selects the next (or previous) tab of the focused group, going round.
+    pub fn select_next(&mut self, forward: bool) {
+        let Some(stack) = self.focused.and_then(|g| self.group(g)) else {
+            return;
+        };
+        let tabs = stack.tabs();
+        let Some(index) = stack
+            .selected()
+            .and_then(|t| tabs.iter().position(|&x| x == t))
+        else {
+            return;
+        };
+        let next = if forward {
+            (index + 1) % tabs.len()
+        } else {
+            (index + tabs.len() - 1) % tabs.len()
+        };
+        let tab = tabs[next];
+        self.select(tab);
+    }
+
     /// Removes a tab.
     pub fn close(&mut self, tab: TabId) {
         if let Some(group) = self.group_of(tab) {
@@ -313,6 +334,18 @@ mod tests {
         let root = area.root().expect("root");
         assert_eq!(tabs(&area, root), [2, 1]);
         assert_eq!(area.selected(), Some(1));
+    }
+
+    #[test]
+    fn next_and_previous_tabs_go_round_in_the_focused_group() {
+        let mut area = area();
+        area.select_next(true);
+        assert_eq!(area.selected(), Some(1));
+        area.select_next(false);
+        assert_eq!(area.selected(), Some(3));
+        area.split(3, false);
+        area.select_next(true);
+        assert_eq!(area.selected(), Some(3), "alone in its group");
     }
 
     #[test]

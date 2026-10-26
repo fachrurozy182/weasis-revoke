@@ -450,3 +450,20 @@
   border: 4px solid transparent;
   border-left-color: currentColor;
 }
+
+/* Maximized (docking shortcut): only the tab group of the selected viewer is shown. */
+.w-maximized .w-dock,
+.w-maximized .w-dock-strip,
+.w-maximized .w-split-divider,
+.w-maximized .w-split-part:not(:has(.w-focused)) {
+  display: none;
+}
+
+/* List of the panels (docking shortcut), centered over the window. */
+.w-menu.w-panel-list {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  min-width: 240px;
+  transform: translateX(-50%);
+}
