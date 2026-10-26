@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.11.b Key Object & hidden series
-- **Langkah berikutnya:** 1.12.a Info pojok per modalitas
+- **Langkah terakhir selesai:** 1.12.a Info pojok
+- **Langkah berikutnya:** 1.13.a PDF terenkapsulasi & video
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -87,7 +87,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.11.a1** Presentation State: tipe, referensi, VOI, Modality/Presentation LUT, overlay, shutter, blending & palette — `PrDicomObject`, `PresentationStateReader`
 - [x] **1.11.a2** Presentation State: anotasi grafik & teks, layer, displayed area, rotasi/flip — `PresentationStateReader`, `PrGraphicUtil`
 - [x] **1.11.b** Key Object, rejected KO, hidden series — `KOSpecialElement`, `RejectedKOSpecialElement`, `HiddenSeriesManager`
-- [ ] **1.12.a** Info pojok per modalitas — `ModalityView`, `ModalityViewJson`, `CornerInfoData`
+- [x] **1.12.a** Info pojok per modalitas — `ModalityView`, `ModalityViewJson`, `CornerInfoData`
 - [ ] **1.13.a** PDF terenkapsulasi & video (keputusan transcode D14) — `DicomEncapDocElement`, `DicomVideoElement`
 - [ ] **1.13.b** Region ultrasound — `Ultrasound`, `SpecialElementRegion`
 - [ ] **1.14.a** Statistik & histogram — `ImageStatistics`, `ValueHistogram`, `ImageAnalyzer`
@@ -135,3 +135,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.11.a1 | `image::PresentationState` (+ `VoiLut::from_item`, `Palette` publik): jenis SOP Class, referensi seri/gambar/frame, VOI per gambar, Modality & Presentation LUT, overlay aktif, shutter, layer blending & palette; 1.11.a dipecah jadi a1/a2. Data sintetis diperbaiki: PR memakai `ReferencedImageSequence`, SEG `ReferencedInstanceSequence` |
 | 2026-10-26 | 1.11.a2 | `image::{Annotation, GraphicLayer, GraphicShape, TextObject, DisplayedArea, SpatialTransform, AnnotationSpace}` + `PresentationState::{annotations_for, displayed_area_for}`: titik dalam koordinat gambar; unit DISPLAY dipetakan sesuai PS3.3 (NOTE: Java mencampur urutan skala & rotasi; area 1-based standar). Model XML privat Weasis menyusul di 4.9 |
 | 2026-10-26 | 1.11.b | `dicom::{KeyObject, KeyImage, ContentOrder}` (referensi hierarkis, rejection IOCM, add/remove/toggle frame; NOTE: gambar utuh tetap ditandai saat frame ditambah) + `model::HiddenObjects` (KO, rejection, PR per pasien, terbaru dulu) pengganti `HiddenSeriesManager` |
+| 2026-10-26 | 1.12.a | `image::{CornerLayout, TagView, Corner, format_value}`: tata letak bawaan 4 pojok × 7 baris, atribut pertama yang ada, format `$V`/`:l$n$`/`:f$pola$` (DecimalFormat, half-even), nama PN, tanggal ISO (NOTE: format lokal di UI); layer site `attributesView.json` → 7.6, masking → 1.15 |

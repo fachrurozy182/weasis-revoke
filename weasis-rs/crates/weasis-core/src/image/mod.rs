@@ -2,6 +2,7 @@
 
 mod color_map;
 mod color_space;
+mod corner_info;
 mod lookup_table;
 mod modality;
 mod overlay;
@@ -19,6 +20,7 @@ pub use color_map::{
     DomainKind as ColorMapDomainKind, Interpolation, parse_color_maps,
 };
 pub use color_space::{ColorSpace, Rgba};
+pub use corner_info::{CORNER_LINES, Corner, CornerLayout, TagView, format_value};
 pub use lookup_table::LookupTable;
 pub use modality::{ModalityLut, ModalityTransform};
 pub use overlay::{

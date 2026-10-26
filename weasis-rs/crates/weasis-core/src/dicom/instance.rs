@@ -10,6 +10,7 @@ use dicom_dictionary_std::tags;
 
 use super::{DicomFile, frame_macro, item_text, object_kind};
 use crate::error::{Error, Result};
+use crate::image::CornerLayout;
 use crate::model::{Attributes, Level, NO_VALUE, NewInstance, PatientIdentity, SplittingRules};
 
 /// Builds the model instance of a parsed file.
@@ -46,6 +47,7 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
     for tag in extra_tags
         .into_iter()
         .chain(SplittingRules::built_in().tags())
+        .chain(CornerLayout::built_in().tags())
     {
         if let Some(value) = file.text(tag) {
             instance.set(tag, value);
