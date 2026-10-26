@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rust web rewrite (`weasis-rs/`)
+
+This repository also hosts a Rust web rewrite of Weasis in `weasis-rs/`. The Java code is the
+read-only reference for it. At the start of every session working on the rewrite, read and
+follow `weasis-rs/CLAUDE.md` (resume protocol, rules) before doing anything else.
+
 ## Build, test, format
 
 Maven multi-module build. Requires **JDK 25+** (CI runs JDK 26 Temurin) and Maven **3.8.1+** (enforced by `maven-enforcer-plugin`). Version is supplied via CI-friendly properties in `weasis-parent/pom.xml`: `${revision}` (currently `4.8.0`) and `${changelist}` (default `-SNAPSHOT`).
