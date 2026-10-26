@@ -95,13 +95,21 @@ impl DicomModel {
     /// Adds an instance, creating its patient, study and series nodes when needed.
     ///
     /// Nodes that already exist keep their attributes; only missing values are filled in.
+    /// When the study is already loaded under another patient (patient attributes that differ
+    /// within one exam), the instance joins that patient, as in the Java viewer.
     /// Returns `false` when an instance with the same SOP Instance UID is already in the series.
     pub fn add_instance(&mut self, new: NewInstance) -> bool {
+        let patient_key = self
+            .patients
+            .iter()
+            .find(|p| p.studies.iter().any(|s| s.uid == new.study_uid))
+            .map_or_else(|| new.patient_key.clone(), |p| p.key.clone());
+
         let patient = get_or_insert(
             &mut self.patients,
-            |p| p.key == new.patient_key,
+            |p| p.key == patient_key,
             || PatientNode {
-                key: new.patient_key.clone(),
+                key: patient_key.clone(),
                 attributes: Attributes::new(),
                 studies: Vec::new(),
             },
@@ -299,6 +307,16 @@ mod tests {
         assert_eq!(model.patients().len(), 2);
         assert_eq!(model.study("ST1").map(|s| s.series.len()), Some(2));
         assert_eq!(model.series("SE1").map(|s| s.instances.len()), Some(2));
+    }
+
+    #[test]
+    fn a_known_study_keeps_its_patient_even_if_patient_attributes_differ() {
+        let mut model = DicomModel::new();
+        model.add_instance(instance("P1", "ST", "SE", "I1"));
+        model.add_instance(instance("P1-TYPO", "ST", "SE", "I2"));
+
+        assert_eq!(model.patients().len(), 1);
+        assert_eq!(model.series("SE").map(|s| s.instances.len()), Some(2));
     }
 
     #[test]
