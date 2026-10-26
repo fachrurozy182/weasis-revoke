@@ -36,7 +36,13 @@ impl DicomFile {
     /// Values using ISO 2022 code extensions (Japanese, Korean, Chinese) are decoded here
     /// because `dicom-rs` does not support them (see [`charset`]).
     pub fn text(&self, tag: Tag) -> Option<String> {
-        let element = self.object.element(tag).ok()?;
+        self.item_text(&self.object, tag)
+    }
+
+    /// Text value of an attribute of an item of this file (e.g. a directory record), decoded
+    /// with the Specific Character Set of the file.
+    pub fn item_text(&self, item: &InMemDicomObject, tag: Tag) -> Option<String> {
+        let element = item.element(tag).ok()?;
         let value = element.to_str().ok()?;
         let decoded = if charset::needs_code_extension_decoding(&self.specific_character_set) {
             let first = self

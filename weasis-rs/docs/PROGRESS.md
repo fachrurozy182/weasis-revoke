@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.9.b Shutter
-- **Langkah berikutnya:** 1.10.a DICOMDIR
+- **Langkah terakhir selesai:** 1.10.a DICOMDIR
+- **Langkah berikutnya:** 1.10.b ZIP
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -82,7 +82,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.8.b** Geometri irisan & perpotongan (lokalizer) — `GeometryOfSlice`, `SlicePlaneGeometry`, `IntersectSlice`, `IntersectVolume`, `LocalizerPoster`
 - [x] **1.9.a** Overlay 60xx & embedded — `OverlayOp`, `OverlayData`, `EmbeddedOverlay`
 - [x] **1.9.b** Shutter (rectangular, circular, polygonal, bitmap) — `ShutterOp`
-- [ ] **1.10.a** DICOMDIR — `DicomDirLoader`
+- [x] **1.10.a** DICOMDIR — `DicomDirLoader`
 - [ ] **1.10.b** ZIP — `DicomZipCodec`
 - [ ] **1.11.a** Presentation State (VOI, grafik, teks, shutter, area) — `PresentationStateReader`, `PrDicomObject`
 - [ ] **1.11.b** Key Object, rejected KO, hidden series — `KOSpecialElement`, `RejectedKOSpecialElement`, `HiddenSeriesManager`
@@ -129,3 +129,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.8.b | `geometry::{SliceGeometry, Localizer, cross_line}`: geometri tampilan (piksel persegi), garis irisan (`IntersectSlice`) & outline slab (`IntersectVolume`), dedup titik terakhir seperti `View2d.getCrossLine`; titik potong dihitung dengan interpolasi eksak (NOTE) |
 | 2026-10-26 | 1.9.a | `image::{overlay_mask, overlay_planes, embedded_overlays, presentation_overlay_planes, paint_overlay}`: 16 grup 60xx, origin & frame, overlay embedded dibaca dari bit tinggi data mentah; jumlah piksel cocok dengan pydicom (222, 2278, 680) |
 | 2026-10-26 | 1.9.b | `image::{Shutter, bitmap_shutter, shutter_color}`: irisan persegi/lingkaran/poligon, warna CIELab atau P-value, shutter bitmap PR hanya dari grup `Shutter Overlay Group` (NOTE: Java memakai semua overlay PR); data uji sintetis `xa-shutter.dcm`, `pr-bitmap-shutter.dcm` |
+| 2026-10-26 | 1.10.a | `dicom::{read_dicomdir, resolve_file_id, DirSeries}`: offset record dipindai dari byte mentah (dicom-rs tidak menyimpannya; cocok dengan pydicom), record nonaktif & PRIVATE dilewati, seri/instance duplikat digabung seperti Java; resolver File ID tanpa filesystem (huruf kecil, ekstensi tunggal, tolak `..`). Ikon seri disimpan, decode di 2.5 |
