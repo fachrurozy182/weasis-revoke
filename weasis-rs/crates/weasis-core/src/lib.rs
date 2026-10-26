@@ -9,5 +9,6 @@
 pub mod dicom;
 pub mod error;
 pub mod geometry;
+pub mod gui;
 pub mod image;
 pub mod model;

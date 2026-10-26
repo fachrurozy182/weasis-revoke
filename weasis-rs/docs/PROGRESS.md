@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 2 — Kerangka UI & explorer (Fase 0 & 1 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 2.2.d Grup tab viewer (langkah 2.2 selesai)
-- **Langkah berikutnya:** 2.3 Shortcut
+- **Langkah terakhir selesai:** 2.3.a Registry shortcut
+- **Langkah berikutnya:** 2.3.b Dispatch shortcut di web, akselerator menu, halaman shortcut
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -106,6 +106,8 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 - [x] **2.2.b** Panel dockable kiri/kanan/bawah: sembunyi, geser, resize, tab (pengganti DockingFrames)
 - [x] **2.2.c** Tab viewer & indikator di menu bar (Java tidak punya status bar: `getStatusBar()` tidak pernah dipakai `WeasisWin`)
 - [x] **2.2.d** Grup tab viewer: split kanan/bawah, pindah ke grup lain (`TabPlacement`)
+- [x] **2.3.a** Registry shortcut: `KeyBinding` (kode AWT), konteks, konflik, preferensi per OS, 77 default (`ShortcutManager`)
+- [ ] **2.3.b** Dispatch di web (`ShortcutActions`/`ShortcutTable`), akselerator menu dari registry, halaman Help ▸ Shortcuts
 - [ ] **2.3.a** Model shortcut: registry, konteks, `KeyBinding` — `ShortcutManager`, `Shortcut-Management.md`
 - [ ] **2.3.b** Dispatch keyboard & akselerator menu di web
 - [ ] **2.4.a** Pipa impor di Web Worker: file & folder, progress — `LoadLocalDicom`, `LoadingTaskPanel`
@@ -176,3 +178,4 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 | 2026-10-26 | 2.2.b | `weasis-web::shell::{dock_layout::DockLayout, dock::{Docking, DockPanel, DockStrip, DropZones}}`: panel kiri/kanan/bawah dengan tab, minimize ke strip samping (klik → dock lagi, bukan flyout DockingFrames — NOTE), close, splitter pointer (160–900 px), tab diseret ke zona drop untuk pindah sisi; tata letak disimpan di `localStorage` (D8); View ▸ Tools / Explorer berisi item centang (`buildSubMenu`); placeholder DICOM Explorer, Image Tools, Display (isi di 2.4/3.x); bundle i18n dicom-explorer & dicom-viewer2d; `web-sys` (DataTransfer, Storage); e2e 5 test + screenshot |
 | 2026-10-26 | 2.2.c | `weasis-web::shell::{Viewers, ViewerArea, Viewer}` + `tab_stack::TabStack`: tab viewer (konten tab tersembunyi dipertahankan), tutup → tab yang terakhir dipilih (riwayat fokus DockingFrames), menu konteks Close Others / Close All; `Viewers` lewat context Leptos untuk explorer (2.4/2.5); `MaskingIndicator` di ujung menu bar + judul jendela "Weasis v… — Anonymized display" seperti `updateTitle`; tombol capture → 7.2. Status bar di PLAN ternyata tidak ada di Java → diganti indikator. Demo viewer di `#gallery`; e2e 4 test baru (total 18) |
 | 2026-10-26 | 2.2.d | `weasis-web::shell::working_area::WorkingArea` (pohon split dari grup `TabStack`, rasio 0.1–0.9, grup kosong digantikan saudaranya) + `viewer_menu::TabMenu`: Split Right / Split Down (hanya bila grup punya >1 tab), Move to Other Group (nama = judul viewer unik, dipotong 60 karakter), Close Others / Close All per grup seperti `CloseOthersAction`; divider split bisa digeser; tab baru dibuka di grup yang fokus. Viewer yang pindah grup dibangun ulang (NOTE). e2e 2 test baru (total 20). **Langkah 2.2 selesai** |
+| 2026-10-26 | 2.3.a | `weasis_core::gui::{KeyBinding, ShortcutManager, ShortcutContext, ShortcutEntry, id}`: kode tombol & modifier AWT (extended, mask lama dinormalisasi) supaya preferensi sama dengan Java; teks "Ctrl+NumPad +" seperti `getKeyText`; `key_code_from_browser` (huruf/angka ikut layout, lainnya posisi `code`, numpad dibedakan); konteks pohon & konflik; preferensi `<id>.keyCode/.modifier` hanya yang berubah, node per OS, plugin yang mendaftar belakangan ikut preferensi; 77 default dari `registerViewerShortcuts` (modifier menu Cmd/Ctrl). Shortcut fitur ActionW → 3.7 |
