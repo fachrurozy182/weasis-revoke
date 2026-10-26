@@ -155,7 +155,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
   JDK 21) dan ambil keluaran; jika tidak bisa, pakai rumus standar DICOM (PS3.3 C.11) +
   dcmtk/pydicom. Catat cara yang dipakai. Verifikasi: ≥ 1 file acuan di `testdata/golden/`.
 - [x] **0.6** Halaman Leptos "hello" disajikan oleh axum. Verifikasi: screenshot Playwright.
-- [ ] **0.7** CI GitHub Actions khusus `weasis-rs/**`: fmt, clippy, test, `trunk build`.
+- [x] **0.7** CI GitHub Actions khusus `weasis-rs/**`: fmt, clippy, test, `trunk build`.
   Verifikasi: CI hijau.
 - [x] **0.8** `docs/FEATURES.md`: daftar fitur rinci per kelas Java → langkah di rencana ini.
   Verifikasi: setiap modul §4.1 dan setiap kelas `*Factory`, `*Tool`, `*ToolBar`, `*PrefView`

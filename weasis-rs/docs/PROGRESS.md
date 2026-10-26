@@ -5,10 +5,9 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 
 ## Status sekarang
 
-- **Fase:** 1 — Inti DICOM (Fase 0 selesai kecuali 0.7 menunggu CI hijau; 0.5 ditunda)
+- **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
 - **Langkah terakhir selesai:** 1.2.c Charset
 - **Langkah berikutnya:** 1.2.d Jenis objek dari SOP Class
-- **Menunggu:** 0.7 CI run pertama (`weasis-rs.yml`) — centang setelah hijau
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -112,3 +111,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.2.a | `weasis_core::dicom::read_dicom` (preamble otomatis, tanpa file meta: tebak Implicit/Explicit LE), `weasis_core::error::Error` |
 | 2026-10-26 | 1.2.b | `weasis_core::dicom::new_instance`; studi yang sudah ada tetap di pasiennya (seperti `LoadDicom`); UID studi/seri hilang → "UNKNOWN", SOP UID hilang → error |
 | 2026-10-26 | 1.2.c | dicom-rs tidak mendukung ISO 2022 (Jepang/Korea/Cina): decoder sendiri `dicom::charset` di atas `encoding_rs`; 13 file charset pydicom lulus (`tests/charset_support.rs`); CI: `concurrency` membatalkan run lama |
+| 2026-10-26 | 0.7 | CI run pertama hijau (±10 menit): fmt, clippy native+WASM, test native+WASM, `trunk build --release` |
