@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.3.b Decode piksel per transfer syntax
-- **Langkah berikutnya:** 1.3.c Fotometri (YBR, palette, planar)
+- **Langkah terakhir selesai:** 1.3 Decode piksel (1.3.c fotometri, 1.3.d test WASM memakai modul)
+- **Langkah berikutnya:** 1.4.a Modality LUT & pixel padding
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -69,8 +69,8 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.2.d** Jenis objek (gambar, video, PR, KO, SEG, SR, dokumen, waveform, tidak didukung) dari SOP Class — `DicomMediaIO` (MIME types), `DicomSpecialElementFactory`
 - [x] **1.3.a** Ekstraksi bytes per frame dari pixel data terenkapsulasi (offset table, multi-fragmen) — `ExtendSegmentedInputImageStream`
 - [x] **1.3.b** Modul codec: dispatch per transfer syntax (D14), buffer piksel bertipe (u8/u16/i16/i32/f32/RGB) — `DicomImageReader`
-- [ ] **1.3.c** Fotometri: MONOCHROME1/2, RGB, YBR_FULL(_422), palette color, planar configuration — `PaletteColorUtils`, `ImageConversion`
-- [ ] **1.3.d** Pindahkan `tests/codec_support.rs` ke modul codec
+- [x] **1.3.c** Fotometri: MONOCHROME1/2, RGB, YBR_FULL(_422), palette color, planar configuration — `PaletteColorUtils`, `ImageConversion`
+- [x] **1.3.d** Pindahkan `tests/codec_support.rs` ke modul codec
 - [ ] **1.4.a** Modality LUT (rescale slope/intercept, Modality LUT Sequence), pixel padding — `ModalityLutModule`, `RescaleUtils`
 - [ ] **1.4.b** VOI: W/L linear, linear exact, sigmoid; VOI LUT Sequence; invert; MONOCHROME1 — `VoiLutModule`, `LutShape`, `WlParams`, `ImageRendering`
 - [ ] **1.5.a** Parse `windowPresets.json` + pilih preset per modalitas/anatomi — `WindowPresetRegistry`, `WindowPreset`, `Window-Presets.md`
@@ -115,3 +115,5 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.2.d | `dicom::object_kind` (13 jenis, aturan `DicomMediaIO.setMimeType`); RTDOSE berpiksel = gambar seperti di Java |
 | 2026-10-26 | 1.3.a | `dicom::compressed_frame` (aturan fragmen seperti `DicomImageReader`, tanpa Basic Offset Table); semua frame multiframe J2K (19) & JPEG (30) ter-decode |
 | 2026-10-26 | 1.3.b | `dicom::pixel` (`ImageDescriptor`, `Samples`, `decode_frame`); 40 file cocok dengan pydicom+codec C (`tests/pixel_decoding.rs`), JPEG-LS RGB → `NeedsServerDecoding` |
+| 2026-10-26 | 1.3.c | `pixel::to_rgb`: planar→interleaved, YBR_FULL/422→RGB, palette (normal & tersegmentasi, 8-bit seperti Java); temuan: RLE dari dicom-pixeldata sudah interleaved, YBR_FULL_422 native & SEG 1-bit terenkapsulasi dibaca sendiri |
+| 2026-10-26 | 1.3.d | `tests/codec_support.rs` kini memanggil `decode_frame` + `to_rgb`, lulus native & WASM |

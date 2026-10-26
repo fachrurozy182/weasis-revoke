@@ -93,14 +93,25 @@ pub fn decode_frame(file: &DicomFile, frame: u32) -> Result<PixelFrame> {
     }
 }
 
-fn decode_native(file: &DicomFile, descriptor: ImageDescriptor, frame: u32) -> Result<PixelFrame> {
+fn decode_native(
+    file: &DicomFile,
+    mut descriptor: ImageDescriptor,
+    frame: u32,
+) -> Result<PixelFrame> {
+    let is_rle = file.transfer_syntax() == "1.2.840.10008.1.2.5";
     if descriptor.bits_allocated == 1 {
         return decode_bit_packed(file, descriptor, frame);
+    }
+    if descriptor.photometric_interpretation == "YBR_FULL_422" && !is_rle {
+        return decode_native_ybr_422(file, descriptor, frame);
     }
     let decoded = file
         .object()
         .decode_pixel_data_frame(frame)
         .map_err(|error| Error::PixelData(error.to_string()))?;
+    // The RLE decoder returns interleaved samples whatever the Planar Configuration says.
+    descriptor.is_planar =
+        decoded.planar_configuration() == dicom_pixeldata::PlanarConfiguration::PixelFirst;
     let samples = samples::from_le_bytes(decoded.data(), &descriptor)?;
     Ok(PixelFrame {
         descriptor,
@@ -108,22 +119,65 @@ fn decode_native(file: &DicomFile, descriptor: ImageDescriptor, frame: u32) -> R
     })
 }
 
-/// 1-bit frames (binary segmentations) are not byte-aligned in multi-frame objects: a frame
+/// Raw bytes of the whole native Pixel Data.
+fn native_pixel_bytes(file: &DicomFile) -> Result<std::borrow::Cow<'_, [u8]>> {
+    file.object()
+        .element(tags::PIXEL_DATA)
+        .map_err(|error| Error::PixelData(error.to_string()))?
+        .to_bytes()
+        .map_err(|error| Error::PixelData(error.to_string()))
+}
+
+/// 1-bit frames (binary segmentations). In native data they are not byte-aligned: a frame
 /// starts at bit `frame × samples per frame` of the whole Pixel Data (PS3.5 §8.1.1).
+/// Encapsulated frames (Deflated Image Frame Compression) are each decoded on their own.
 fn decode_bit_packed(
     file: &DicomFile,
     descriptor: ImageDescriptor,
     frame: u32,
 ) -> Result<PixelFrame> {
-    let bytes = file
+    let count = descriptor.sample_count();
+    let is_encapsulated = file
         .object()
         .element(tags::PIXEL_DATA)
-        .map_err(|error| Error::PixelData(error.to_string()))?
-        .to_bytes()
-        .map_err(|error| Error::PixelData(error.to_string()))?;
-    let count = descriptor.sample_count();
-    let first_bit = usize::try_from(frame).map_err(|e| Error::PixelData(e.to_string()))? * count;
-    let samples = Samples::U8(samples::unpack_bits(&bytes, first_bit, count));
+        .is_ok_and(|element| element.value().fragments().is_some());
+    let samples = if is_encapsulated {
+        let decoded = file
+            .object()
+            .decode_pixel_data_frame(frame)
+            .map_err(|error| Error::PixelData(error.to_string()))?;
+        samples::unpack_bits(decoded.data(), 0, count)
+    } else {
+        let first_bit =
+            usize::try_from(frame).map_err(|e| Error::PixelData(e.to_string()))? * count;
+        samples::unpack_bits(&native_pixel_bytes(file)?, first_bit, count)
+    };
+    let samples = Samples::U8(samples);
+    Ok(PixelFrame {
+        descriptor,
+        samples,
+    })
+}
+
+/// Native YBR_FULL_422 stores two samples per pixel (`Y1 Y2 Cb Cr` per pixel pair, PS3.3
+/// §C.7.6.3.1.2), which `dicom-pixeldata` does not handle; the chroma is upsampled by `to_rgb`.
+fn decode_native_ybr_422(
+    file: &DicomFile,
+    descriptor: ImageDescriptor,
+    frame: u32,
+) -> Result<PixelFrame> {
+    if descriptor.bits_allocated != 8 {
+        return Err(Error::PixelData(
+            "YBR_FULL_422 is supported for 8-bit samples only".to_owned(),
+        ));
+    }
+    let bytes = native_pixel_bytes(file)?;
+    let frame_length = descriptor.pixel_count() * 2;
+    let start = usize::try_from(frame).map_err(|e| Error::PixelData(e.to_string()))? * frame_length;
+    let frame_bytes = bytes
+        .get(start..start + frame_length)
+        .ok_or_else(|| Error::PixelData("pixel data is too short".to_owned()))?;
+    let samples = Samples::U8(frame_bytes.to_vec());
     Ok(PixelFrame {
         descriptor,
         samples,

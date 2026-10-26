@@ -164,7 +164,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 ### Fase 1 — Inti DICOM (`weasis-core`, tanpa UI)
 - [x] **1.1** Model Patient/Study/Series/Instance + tag (`DicomModel`, `TagD`, `TagW`, `MediaSeries`).
 - [x] **1.2** Baca file → metadata, charset (`DicomMediaIO`, `CharsetEncoding`); file rusak → error jelas.
-- [ ] **1.3** Decode piksel: u8/u16/i16/float/RGB, multiframe, planar, YBR → RGB.
+- [x] **1.3** Decode piksel: u8/u16/i16/float/RGB, multiframe, planar, YBR → RGB.
 - [ ] **1.4** Modality LUT, pixel padding, VOI W/L linear/sigmoid, VOI LUT, MONOCHROME1, invert.
 - [ ] **1.5** Preset W/L dari `windowPresets.json` (`WindowPresetRegistry`, `Window-Presets.md`).
 - [ ] **1.6** Color map dari `colormaps.json` (`ColorMapRegistry`, `ColorMap-Design.md`).

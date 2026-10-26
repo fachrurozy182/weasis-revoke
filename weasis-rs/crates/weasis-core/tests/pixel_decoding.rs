@@ -12,7 +12,7 @@
 // Test helpers may panic: a missing test file is a broken checkout, not a recoverable error.
 #![allow(clippy::panic)]
 
-use weasis_core::dicom::pixel::{Samples, decode_frame};
+use weasis_core::dicom::pixel::{Samples, decode_frame, to_rgb};
 use weasis_core::dicom::read_dicom;
 use weasis_core::error::Error;
 
@@ -170,4 +170,61 @@ fn multi_component_jpeg_ls_is_left_to_the_server() {
     let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {path}: {e}"));
     let result = decode_frame(&read_dicom(&bytes).expect("readable"), 0);
     assert!(matches!(result, Err(Error::NeedsServerDecoding(_))));
+}
+
+/// Color frames after `to_rgb`: (file, sample count, Σ value × (index mod 3 + 1), tolerance per
+/// sample). The weighted sum detects swapped channels and wrong interleaving. Reference:
+/// pydicom `pixel_array(raw=False)`, palette via `apply_color_lut` reduced to 8 bits.
+/// YBR conversions may round differently from pydicom by 1.
+#[rustfmt::skip]
+const COLOR_REFERENCES: &[(&str, usize, f64, f64)] = &[
+    ("pydicom/SC_ybr_full_422_uncompressed.dcm", 30000, 7_665_100.0, 1.0),
+    ("weasis-dicom-tools/ybr422-raw.dcm", 1_332_000, 41_792_624.0, 1.0),
+    ("weasis-dicom-tools/ybrFull-RLE.dcm", 921_600, 69_034_253.0, 1.0),
+    ("pydicom/examples_palette.dcm", 840_000, 37_085_216.0, 0.0),
+    ("weasis-dicom-tools/palette-multiframe-jpeg-ls.dcm", 774_000, 23_865_639.0, 0.0),
+    ("weasis-dicom-tools/US-RGB-8-epicard-Banded-bigendian.dcm", 921_600, 42_628_238.0, 0.0),
+    ("pydicom/US1_UNCR.dcm", 921_600, 60_061_545.0, 0.0),
+];
+
+fn weighted_rgb_sum(file: &str) -> Result<(usize, f64), String> {
+    let path = format!("{}/../../testdata/{file}", env!("CARGO_MANIFEST_DIR"));
+    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {path}: {e}"));
+    let dicom = read_dicom(&bytes).map_err(|e| e.to_string())?;
+    let frame = decode_frame(&dicom, 0).map_err(|e| e.to_string())?;
+    let rgb = to_rgb(frame, &dicom).map_err(|e| e.to_string())?;
+    if rgb.descriptor.photometric_interpretation != "RGB" || rgb.descriptor.is_planar {
+        return Err(format!("not interleaved RGB: {:?}", rgb.descriptor));
+    }
+    let count = rgb.samples.len();
+    let sum = (0..count)
+        .filter_map(|i| rgb.samples.get_f64(i).map(|v| v * ((i % 3) as f64 + 1.0)))
+        .sum();
+    Ok((count, sum))
+}
+
+#[test]
+fn color_frames_are_converted_to_interleaved_rgb() {
+    let failures: Vec<String> = COLOR_REFERENCES
+        .iter()
+        .filter_map(|&(file, count, sum, tolerance)| {
+            let result = weighted_rgb_sum(file).and_then(|(actual_count, actual_sum)| {
+                // Weights go up to 3, so each sample may move the sum by 3 × tolerance.
+                let max_difference = 3.0 * tolerance * count as f64;
+                if actual_count != count || (actual_sum - sum).abs() > max_difference.max(1e-6) {
+                    Err(format!(
+                        "{actual_count} samples, sum {actual_sum}; expected {count}, {sum}"
+                    ))
+                } else {
+                    Ok(())
+                }
+            });
+            result.err().map(|error| format!("{file}: {error}"))
+        })
+        .collect();
+    assert!(
+        failures.is_empty(),
+        "wrong color conversion:\n{}",
+        failures.join("\n")
+    );
 }
