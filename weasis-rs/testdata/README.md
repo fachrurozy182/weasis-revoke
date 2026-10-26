@@ -21,6 +21,7 @@ berlisensi bebas. Total ±9 MB.
 | PET + CT (fusion) | `synthetic/pet-series/` + `synthetic/ct-series/` (frame of reference sama) |
 | Presentation State | `synthetic/pr-annotation.dcm`, `weasis-dicom-tools/prLUTs.dcm` (+ `imageForPrLUTs.dcm`), `weasis-dicom-tools/prOverlay.dcm` (+ `overlay.dcm`) |
 | Key Object | `synthetic/ko-for-teaching.dcm` |
+| Modality LUT Sequence / VOI LUT Sequence | `pydicom/mlut_18.dcm` / `pydicom/vlut_04.dcm` |
 | Float Pixel Data | `pydicom/parametric_map_float.dcm` |
 | Segmentasi (SEG) | `synthetic/seg-sphere.dcm`, `pydicom/liver_deflate.dcm` |
 | Structured Report | `pydicom/test-SR.dcm`, `pydicom/reportsi.dcm` |
