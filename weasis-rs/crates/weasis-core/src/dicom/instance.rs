@@ -8,7 +8,7 @@
 
 use dicom_dictionary_std::tags;
 
-use super::DicomFile;
+use super::{DicomFile, frame_macro, item_text};
 use crate::error::{Error, Result};
 use crate::model::{Attributes, Level, NO_VALUE, NewInstance, PatientIdentity};
 
@@ -46,6 +46,7 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
             instance.set(tag, value);
         }
     }
+    set_plane_of_first_frame(file, &mut instance);
 
     Ok(NewInstance {
         patient_key: identity.pseudo_uid(),
@@ -58,6 +59,27 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
         series: level_attributes(file, Level::Series),
         instance,
     })
+}
+
+/// Image Position and Orientation (Patient) of the first frame, used to sort the stack: from
+/// the Plane Position / Plane Orientation functional groups of enhanced objects, else from the
+/// data set (PS3.3 §C.7.6.2).
+fn set_plane_of_first_frame(file: &DicomFile, instance: &mut Attributes) {
+    let planes = [
+        (tags::PLANE_POSITION_SEQUENCE, tags::IMAGE_POSITION_PATIENT),
+        (
+            tags::PLANE_ORIENTATION_SEQUENCE,
+            tags::IMAGE_ORIENTATION_PATIENT,
+        ),
+    ];
+    for (group, tag) in planes {
+        let value = frame_macro(file, 0, group)
+            .and_then(|item| item_text(item, tag))
+            .or_else(|| file.text(tag));
+        if let Some(value) = value {
+            instance.set(tag, value);
+        }
+    }
 }
 
 /// Copies the non-empty text attributes of one level.
@@ -123,5 +145,28 @@ mod tests {
                 .map(|s| s.instances.len()),
             Some(2)
         );
+    }
+
+    #[test]
+    fn a_reversed_ct_series_is_sorted_back_by_slice_position() {
+        use crate::model::{SortKey, sort_instances};
+        let mut model = DicomModel::new();
+        for slice in (1..=16).rev() {
+            model.add_instance(instance_of(&format!(
+                "synthetic/ct-series/CT{slice:03}.dcm"
+            )));
+        }
+        let mut stack = model
+            .series("2.25.1234567890.10")
+            .expect("series")
+            .instances
+            .clone();
+        sort_instances(&mut stack, SortKey::SlicePosition);
+        let numbers: Vec<&str> = stack
+            .iter()
+            .filter_map(|i| i.attributes.get(tags::INSTANCE_NUMBER))
+            .collect();
+        let expected: Vec<String> = (1..=16).map(|n| n.to_string()).collect();
+        assert_eq!(numbers, expected);
     }
 }

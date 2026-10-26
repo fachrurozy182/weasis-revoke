@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.6 Color map
-- **Langkah berikutnya:** 1.7.a Urutan stack (`SortSeriesStack`)
+- **Langkah terakhir selesai:** 1.7.a Urutan stack
+- **Langkah berikutnya:** 1.7.b Aturan pemecahan seri (`SplittingRules`)
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -76,7 +76,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.5.a** Anatomi gambar (body part, region group, selector) — `weasis-dicom-tools` `ref/*`, `regionGroups.json`
 - [x] **1.5.b** Parse `windowPresets.json` + daftar preset per gambar (urutan, layer, percent) — `WindowPresetRegistry`, `WindowPreset`, `PresetWindowLevel`, `Window-Presets.md`
 - [x] **1.6.a** Parse `colormaps.json` + sampling color map — `ColorMapRegistry`, `ColorMapCompiler`, `ColorMap-Design.md`
-- [ ] **1.7.a** Urutan stack — `SortSeriesStack`
+- [x] **1.7.a** Urutan stack — `SortSeriesStack`
 - [ ] **1.7.b** Aturan pemecahan seri (subseries) — `SplittingRules`, `SplittingModalityRules`
 - [ ] **1.8.a** Orientasi & label (A/P/L/R/H/F) — `ImageOrientation`, `PatientOrientation`, `geom/*`
 - [ ] **1.8.b** Geometri irisan & perpotongan (lokalizer) — `GeometryOfSlice`, `SlicePlaneGeometry`, `IntersectSlice`, `IntersectVolume`, `LocalizerPoster`
@@ -123,3 +123,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.5.a | `dicom::anatomy` (407 body part dari `BodyPart.java` via `tools/anatomy/generate.py`, 390 kode SRT, `regionGroups.json` di `assets/config/`); SurfacePart/OtherPart menyusul di 6.11 |
 | 2026-10-26 | 1.5.b | `image::{WindowPreset, PresetLayers, preset_list}`: JSON + layer (built-in/site/user), percent image/series, anatomi, shortcut & default per layer; urutan = `PresetCollectionBuilder` |
 | 2026-10-26 | 1.6.a | `image::{ColorMap, ColorSpace, Rgba}`: 40 map `colormaps.json`, domain relative/absolute/fixed/percent, RGB/HSL/LAB, linear/step/sampled, cyclic, alpha; palette DICOM PS3.6 cocok dengan pydicom. Impor Color Palette IOD menyusul di 2.4 |
+| 2026-10-26 | 1.7.a | `model::{SortKey, sort_instances, slice_position}` (6 kriteria Java; nilai hilang di akhir agar urutan total); posisi/orientasi frame pertama disimpan di atribut instance (functional group untuk enhanced) |
