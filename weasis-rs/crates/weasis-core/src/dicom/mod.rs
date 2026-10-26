@@ -4,6 +4,7 @@ mod charset;
 mod frames;
 mod instance;
 mod object_kind;
+pub mod pixel;
 mod reader;
 
 pub use frames::compressed_frame;

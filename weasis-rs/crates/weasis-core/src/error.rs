@@ -13,4 +13,12 @@ pub enum Error {
     /// The pixel data cannot be read or decoded.
     #[error("cannot read the pixel data: {0}")]
     PixelData(String),
+
+    /// No codec for this transfer syntax.
+    #[error("unsupported transfer syntax {0}")]
+    UnsupportedTransferSyntax(String),
+
+    /// The pixel data can only be decoded by the server (decision D14).
+    #[error("{0} must be decoded by the server")]
+    NeedsServerDecoding(String),
 }
