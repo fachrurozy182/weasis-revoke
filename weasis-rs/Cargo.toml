@@ -23,12 +23,16 @@ weasis-net = { path = "crates/weasis-net" }
 # replaced by the pure-Rust codecs below (decision D14).
 dicom-object = { version = "0.10.0", features = ["deflate"] }
 dicom-dictionary-std = "0.10.0"
+dicom-transfer-syntax-registry = { version = "0.10.0", default-features = false }
 dicom-pixeldata = { version = "0.10.0", default-features = false, features = ["rle", "deflate"] }
 
 # Pure-Rust image codecs that also compile to WebAssembly (decision D14).
 oxiarc-jpeg = "0.4.2"
 jpegls = { package = "pure_jpegls", version = "2.0.0" }
 oxideav-jpeg2000 = { version = "0.0.17", default-features = false }
+
+# Error types (docs/CODING-GUIDE.md §5).
+thiserror = "2.0.21"
 
 # Frontend (decision D2).
 leptos = { version = "0.8.22", features = ["csr"] }

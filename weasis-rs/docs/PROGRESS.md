@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai kecuali 0.7 menunggu CI hijau; 0.5 ditunda)
-- **Langkah terakhir selesai:** 1.1 Model Patient/Study/Series/Instance
-- **Langkah berikutnya:** 1.2.a Baca file/bytes → objek DICOM
+- **Langkah terakhir selesai:** 1.2.a Baca file/bytes → objek DICOM
+- **Langkah berikutnya:** 1.2.b Ekstrak tag tiap level ke model
 - **Menunggu:** 0.7 CI run pertama (`weasis-rs.yml`) — centang setelah hijau
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
@@ -64,7 +64,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.1.a** `model::Level` (Patient/Study/Series/Instance/Frame) + daftar tag per level — `TagD.Level`, `DicomMediaIO` (blok `static`)
 - [x] **1.1.b** Identitas pasien (`pseudo_uid`, normalisasi nama PS3.5 §6.2.1) — `PatientComparator`
 - [x] **1.1.c** Pohon Patient → Study → Series → Instance: tambah, cari, hapus, gabung pasien/studi — `DicomModel`, `MediaSeriesGroupNode`, `TreeModelNode`
-- [ ] **1.2.a** Baca file/bytes → objek DICOM (preamble otomatis, file tanpa meta, error jelas) — `DicomMediaIO.readMetaData`
+- [x] **1.2.a** Baca file/bytes → objek DICOM (preamble otomatis, file tanpa meta, error jelas) — `DicomMediaIO.readMetaData`
 - [ ] **1.2.b** Ekstrak tag tiap level ke model + atribut instance (SOP, instance number, TS, concatenation) — `DicomMediaIO.writeInstanceTags`
 - [ ] **1.2.c** Charset (Specific Character Set) — `CharsetEncoding`
 - [ ] **1.2.d** Jenis objek (gambar, video, PR, KO, SEG, SR, dokumen, waveform, tidak didukung) dari SOP Class — `DicomMediaIO` (MIME types), `DicomSpecialElementFactory`
@@ -109,3 +109,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 0.6 | Leptos CSR (`weasis-web`) dibangun Trunk, disajikan `weasis-server` (axum, fallback ke `index.html`); diverifikasi Playwright tanpa error console |
 | 2026-10-26 | 0.7 | Workflow `.github/workflows/weasis-rs.yml` dibuat (action dikunci SHA), run pertama berjalan |
 | 2026-10-26 | 1.1 | `weasis_core::model`: `Level`, `PatientIdentity`, `Attributes`, `DicomModel` (tambah/cari/hapus/gabung), 15 unit test |
+| 2026-10-26 | 1.2.a | `weasis_core::dicom::read_dicom` (preamble otomatis, tanpa file meta: tebak Implicit/Explicit LE), `weasis_core::error::Error` |
