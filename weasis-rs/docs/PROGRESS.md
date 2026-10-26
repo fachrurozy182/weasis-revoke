@@ -5,9 +5,10 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 
 ## Status sekarang
 
-- **Fase:** 0 — Persiapan
-- **Langkah terakhir selesai:** 0.6 Halaman Leptos disajikan axum
-- **Langkah berikutnya:** 0.7 CI GitHub Actions untuk `weasis-rs/`
+- **Fase:** 1 — Inti DICOM (Fase 0 selesai kecuali 0.7 menunggu CI hijau; 0.5 ditunda)
+- **Langkah terakhir selesai:** 1.1 Model Patient/Study/Series/Instance
+- **Langkah berikutnya:** 1.2.a Baca file/bytes → objek DICOM
+- **Menunggu:** 0.7 CI run pertama (`weasis-rs.yml`) — centang setelah hijau
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -55,6 +56,44 @@ Catatan: `pydicom/JPEG-lossy.dcm` rusak (codec C pun gagal), tidak dipakai.
 
 (Sebelum memulai fase, tulis `x.y.a`, `x.y.b`, … di sini dengan checkbox.)
 
+### Fase 1 — Inti DICOM (`weasis-core`)
+
+Modul Rust di `crates/weasis-core/src/`: `model/` (1.1), `dicom/` (1.2–1.13), `image/` (1.3–1.6, 1.14).
+Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
+
+- [x] **1.1.a** `model::Level` (Patient/Study/Series/Instance/Frame) + daftar tag per level — `TagD.Level`, `DicomMediaIO` (blok `static`)
+- [x] **1.1.b** Identitas pasien (`pseudo_uid`, normalisasi nama PS3.5 §6.2.1) — `PatientComparator`
+- [x] **1.1.c** Pohon Patient → Study → Series → Instance: tambah, cari, hapus, gabung pasien/studi — `DicomModel`, `MediaSeriesGroupNode`, `TreeModelNode`
+- [ ] **1.2.a** Baca file/bytes → objek DICOM (preamble otomatis, file tanpa meta, error jelas) — `DicomMediaIO.readMetaData`
+- [ ] **1.2.b** Ekstrak tag tiap level ke model + atribut instance (SOP, instance number, TS, concatenation) — `DicomMediaIO.writeInstanceTags`
+- [ ] **1.2.c** Charset (Specific Character Set) — `CharsetEncoding`
+- [ ] **1.2.d** Jenis objek (gambar, video, PR, KO, SEG, SR, dokumen, waveform, tidak didukung) dari SOP Class — `DicomMediaIO` (MIME types), `DicomSpecialElementFactory`
+- [ ] **1.3.a** Ekstraksi bytes per frame dari pixel data terenkapsulasi (offset table, multi-fragmen) — `ExtendSegmentedInputImageStream`
+- [ ] **1.3.b** Modul codec: dispatch per transfer syntax (D14), buffer piksel bertipe (u8/u16/i16/i32/f32/RGB) — `DicomImageReader`
+- [ ] **1.3.c** Fotometri: MONOCHROME1/2, RGB, YBR_FULL(_422), palette color, planar configuration — `PaletteColorUtils`, `ImageConversion`
+- [ ] **1.3.d** Pindahkan `tests/codec_support.rs` ke modul codec
+- [ ] **1.4.a** Modality LUT (rescale slope/intercept, Modality LUT Sequence), pixel padding — `ModalityLutModule`, `RescaleUtils`
+- [ ] **1.4.b** VOI: W/L linear, linear exact, sigmoid; VOI LUT Sequence; invert; MONOCHROME1 — `VoiLutModule`, `LutShape`, `WlParams`, `ImageRendering`
+- [ ] **1.5.a** Parse `windowPresets.json` + pilih preset per modalitas/anatomi — `WindowPresetRegistry`, `WindowPreset`, `Window-Presets.md`
+- [ ] **1.6.a** Parse `colormaps.json` + sampling color map — `ColorMapRegistry`, `ColorMapCompiler`, `ColorMap-Design.md`
+- [ ] **1.7.a** Urutan stack — `SortSeriesStack`
+- [ ] **1.7.b** Aturan pemecahan seri (subseries) — `SplittingRules`, `SplittingModalityRules`
+- [ ] **1.8.a** Orientasi & label (A/P/L/R/H/F) — `ImageOrientation`, `PatientOrientation`, `geom/*`
+- [ ] **1.8.b** Geometri irisan & perpotongan (lokalizer) — `GeometryOfSlice`, `SlicePlaneGeometry`, `IntersectSlice`, `IntersectVolume`, `LocalizerPoster`
+- [ ] **1.9.a** Overlay 60xx & embedded — `OverlayOp`, `OverlayData`, `EmbeddedOverlay`
+- [ ] **1.9.b** Shutter (rectangular, circular, polygonal, bitmap) — `ShutterOp`
+- [ ] **1.10.a** DICOMDIR — `DicomDirLoader`
+- [ ] **1.10.b** ZIP — `DicomZipCodec`
+- [ ] **1.11.a** Presentation State (VOI, grafik, teks, shutter, area) — `PresentationStateReader`, `PrDicomObject`
+- [ ] **1.11.b** Key Object, rejected KO, hidden series — `KOSpecialElement`, `RejectedKOSpecialElement`, `HiddenSeriesManager`
+- [ ] **1.12.a** Info pojok per modalitas — `ModalityView`, `ModalityViewJson`, `CornerInfoData`
+- [ ] **1.13.a** PDF terenkapsulasi & video (keputusan transcode D14) — `DicomEncapDocElement`, `DicomVideoElement`
+- [ ] **1.13.b** Region ultrasound — `Ultrasound`, `SpecialElementRegion`
+- [ ] **1.14.a** Statistik & histogram — `ImageStatistics`, `ValueHistogram`, `ImageAnalyzer`
+- [ ] **1.14.b** Unit & besaran — `Unit`, `QuantityKind`
+- [ ] **1.15.a** Profil masking identitas — `Identity-Masking.md`, `identityMasking*.json`
+- [ ] **1.15.b** Redaksi piksel — `Redaction`, `KarnakMasks`, `PixelPrivacy`
+
 ## Log sesi
 
 | Tanggal | Langkah | Catatan |
@@ -68,3 +107,5 @@ Catatan: `pydicom/JPEG-lossy.dcm` rusak (codec C pun gagal), tidak dipakai.
 | 2026-10-26 | 0.3 | `testdata/` 9 MB: pydicom + pydicom-data (MIT), weasis-dicom-tools, sintetis dari `tools/testdata/generate.py` |
 | 2026-10-26 | 0.4 | Codec murni Rust lulus di WASM (D14); JPEG-LS RGB → server |
 | 2026-10-26 | 0.6 | Leptos CSR (`weasis-web`) dibangun Trunk, disajikan `weasis-server` (axum, fallback ke `index.html`); diverifikasi Playwright tanpa error console |
+| 2026-10-26 | 0.7 | Workflow `.github/workflows/weasis-rs.yml` dibuat (action dikunci SHA), run pertama berjalan |
+| 2026-10-26 | 1.1 | `weasis_core::model`: `Level`, `PatientIdentity`, `Attributes`, `DicomModel` (tambah/cari/hapus/gabung), 15 unit test |

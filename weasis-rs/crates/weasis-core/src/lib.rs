@@ -5,3 +5,5 @@
 //!
 //! Java reference: `weasis-core`, `weasis-dicom/weasis-dicom-codec`, and the external
 //! libraries `weasis-dicom-tools` and `weasis-core-img`.
+
+pub mod model;
