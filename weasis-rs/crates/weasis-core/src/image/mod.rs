@@ -5,6 +5,8 @@ mod color_space;
 mod lookup_table;
 mod modality;
 mod overlay;
+mod pr_annotation;
+mod pr_display;
 mod presentation_state;
 mod preset_list;
 mod render;
@@ -23,6 +25,10 @@ pub use overlay::{
     EmbeddedOverlay, OverlayPlane, embedded_overlays, overlay_mask, overlay_planes, paint_overlay,
     presentation_overlay_planes,
 };
+pub use pr_annotation::{
+    Annotation, GraphicLayer, GraphicObject, GraphicShape, LineStyle, TextObject,
+};
+pub use pr_display::{AnnotationSpace, DisplayedArea, SizeMode, SpatialTransform};
 pub use presentation_state::{
     BlendingLayer, ImageReference, PresentationKind, PresentationLut, PresentationState,
     SeriesReference, VoiItem,

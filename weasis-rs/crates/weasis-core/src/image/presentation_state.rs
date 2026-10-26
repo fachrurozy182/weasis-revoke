@@ -2,7 +2,8 @@
 //!
 //! This module reads what changes the pixels: references, Softcopy VOI LUT, Modality LUT,
 //! Presentation LUT, overlays, shutters, and for pseudo-color and blending states the palette
-//! and the blending layers. Annotations and the displayed area come in step 1.11.a2.
+//! and the blending layers; then where and how the image is shown (displayed area, rotation,
+//! flip) and the graphic annotations drawn over it.
 //!
 //! Java reference: `weasis-dicom-tools/.../org/dcm4che3/img/data/PrDicomObject.java` and
 //! `weasis-dicom/weasis-dicom-codec/src/main/java/org/weasis/dicom/codec/PresentationStateReader.java`
@@ -12,8 +13,9 @@ use dicom_dictionary_std::tags;
 use dicom_object::{InMemDicomObject, Tag};
 
 use super::{
-    LookupTable, ModalityTransform, OverlayPlane, Rgba, Shutter, VoiLut, bitmap_shutter,
-    overlay_planes, presentation_overlay_planes,
+    Annotation, AnnotationSpace, DisplayedArea, GraphicLayer, LookupTable, ModalityTransform,
+    OverlayPlane, Rgba, Shutter, SpatialTransform, VoiLut, bitmap_shutter, overlay_planes,
+    presentation_overlay_planes,
 };
 use crate::dicom::pixel::Palette;
 use crate::dicom::{DicomFile, first_item, item_f64, item_text};
@@ -62,7 +64,7 @@ pub struct ImageReference {
 }
 
 impl ImageReference {
-    fn list(parent: &InMemDicomObject) -> Vec<Self> {
+    pub(super) fn list(parent: &InMemDicomObject) -> Vec<Self> {
         items(parent, tags::REFERENCED_IMAGE_SEQUENCE)
             .iter()
             .filter_map(|item| {
@@ -175,6 +177,14 @@ pub struct PresentationState {
     pub relative_opacity: Option<f64>,
     /// Palette of pseudo-color and blending states.
     pub palette: Option<Palette>,
+    /// Displayed Area Selection items.
+    pub displayed_areas: Vec<DisplayedArea>,
+    /// Image Rotation and Image Horizontal Flip.
+    pub spatial_transform: SpatialTransform,
+    /// Graphic layers.
+    pub layers: Vec<GraphicLayer>,
+    /// The data set, read again for the annotations of each image.
+    object: InMemDicomObject,
 }
 
 impl PresentationState {
@@ -216,6 +226,10 @@ impl PresentationState {
             relative_opacity: item_f64(object, tags::RELATIVE_OPACITY),
             palette: palette(object, kind),
             blending_layers,
+            displayed_areas: DisplayedArea::list(object),
+            spatial_transform: SpatialTransform::read(object),
+            layers: GraphicLayer::list(object),
+            object: object.clone(),
         })
     }
 
@@ -230,6 +244,30 @@ impl PresentationState {
             .iter()
             .filter(|s| s.series_instance_uid == series_instance_uid)
             .any(|s| covers(&s.images, sop_instance_uid, frame, false))
+    }
+
+    /// The displayed area of a frame (1-based) of an image, if the state selects one.
+    pub fn displayed_area_for(&self, sop_instance_uid: &str, frame: i32) -> Option<&DisplayedArea> {
+        self.displayed_areas
+            .iter()
+            .find(|area| covers(&area.images, sop_instance_uid, frame, true))
+    }
+
+    /// The annotations shown on a frame (1-based) of an image of `columns` × `rows` pixels, in
+    /// image coordinates.
+    pub fn annotations_for(
+        &self,
+        sop_instance_uid: &str,
+        frame: i32,
+        columns: u32,
+        rows: u32,
+    ) -> Vec<Annotation> {
+        let area = self.displayed_area_for(sop_instance_uid, frame);
+        let space = AnnotationSpace::new(columns, rows, area, self.spatial_transform);
+        Annotation::list(&self.object, &space)
+            .into_iter()
+            .filter(|annotation| covers(&annotation.images, sop_instance_uid, frame, true))
+            .collect()
     }
 
     /// The VOI of a frame (1-based) of an image: the first Softcopy VOI LUT item that covers it,
@@ -397,6 +435,54 @@ mod tests {
         let voi = pr.voi_for(slice, 1).expect("VOI of the slice");
         assert_eq!((voi.windows[0].center, voi.windows[0].width), (40.0, 400.0));
         assert_eq!(pr.voi_for("2.25.1234567890.10.1", 1), None);
+    }
+
+    #[test]
+    fn layers_and_displayed_area_are_read() {
+        let pr = state("weasis-dicom-tools/prOverlay.dcm");
+        assert_eq!(pr.layers.len(), 6);
+        let white = pr.layers[0].color.map(Rgba::to_bytes);
+        assert_eq!(white, Some([255, 255, 255, 255]));
+        let area = pr
+            .displayed_area_for("1.2.276.0.7230010.3.200.12.1.1", 1)
+            .expect("area");
+        assert_eq!(
+            area.bounds(),
+            (glam::DVec2::ZERO, glam::DVec2::splat(512.0))
+        );
+        assert_eq!(area.aspect_ratio, Some((1, 1)));
+        assert_eq!(pr.spatial_transform, SpatialTransform::default());
+    }
+
+    #[test]
+    fn annotations_are_given_for_their_images() {
+        use super::super::{GraphicShape, TextObject};
+        use glam::DVec2;
+        let pr = state("synthetic/pr-annotation.dcm");
+        let annotations = pr.annotations_for("2.25.1234567890.10.9", 1, 64, 64);
+        assert_eq!(annotations.len(), 1);
+        let annotation = &annotations[0];
+        assert_eq!(annotation.layer, "LAYER1");
+        assert_eq!(
+            annotation.graphics[0].shape,
+            GraphicShape::Polyline(vec![DVec2::new(10.0, 32.0), DVec2::new(54.0, 32.0)])
+        );
+        let TextObject {
+            lines,
+            anchor,
+            bounding_box,
+            ..
+        } = &annotation.texts[0];
+        assert_eq!(lines, &["Sphere"]);
+        assert_eq!(*anchor, Some(DVec2::new(32.0, 8.0)));
+        assert_eq!(
+            *bounding_box,
+            Some((DVec2::new(24.0, 2.0), DVec2::new(40.0, 8.0)))
+        );
+        assert!(
+            pr.annotations_for("2.25.1234567890.10.1", 1, 64, 64)
+                .is_empty()
+        );
     }
 
     #[test]
