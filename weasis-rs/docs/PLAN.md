@@ -142,7 +142,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
   Verifikasi: `cargo check --workspace`.
 - [x] **0.2** Target `wasm32-unknown-unknown` + Trunk; catat versi di `PROGRESS.md`.
   Verifikasi: `trunk --version`, `rustup target list --installed`.
-- [ ] **0.3** Data uji di `testdata/` + `testdata/README.md` (sumber & lisensi per file).
+- [x] **0.3** Data uji di `testdata/` + `testdata/README.md` (sumber & lisensi per file).
   Wajib: CT, MR, CR/DX (MONOCHROME1), US RGB, multiframe, PET+CT (fusion), PR, KO, SEG,
   SR, RTSTRUCT/RTDOSE/RTPLAN, ECG, audio, PDF terenkapsulasi, video, DICOMDIR, ZIP,
   overlay, dan setiap transfer syntax di 0.4. Verifikasi: tabel README lengkap, total < 100 MB.

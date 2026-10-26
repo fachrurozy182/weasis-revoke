@@ -6,9 +6,10 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 0 — Persiapan
-- **Langkah terakhir selesai:** 0.2 Trunk & target wasm32
-- **Langkah berikutnya:** 0.3 Data uji di `testdata/`
+- **Langkah terakhir selesai:** 0.3 Data uji di `testdata/`
+- **Langkah berikutnya:** 0.4 Uji codec di WASM
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
+- **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
 
 ## Lingkungan
@@ -40,3 +41,4 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 | 2026-10-26 | — | Acuan `weasis-core-img` (`10f88e4`, versi 5.0.0.1) ditambahkan; Q2 selesai |
 | 2026-10-26 | 0.1 | Workspace 4 crate (`weasis-core`, `weasis-net`, `weasis-web`, `weasis-server`), toolchain 1.97.0 dikunci, lint sesuai CODING-GUIDE |
 | 2026-10-26 | 0.2 | Trunk 0.22.1 & target wasm32 terpasang |
+| 2026-10-26 | 0.3 | `testdata/` 9 MB: pydicom + pydicom-data (MIT), weasis-dicom-tools, sintetis dari `tools/testdata/generate.py` |
