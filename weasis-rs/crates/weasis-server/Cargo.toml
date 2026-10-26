@@ -1,0 +1,15 @@
+[package]
+name = "weasis-server"
+description = "Weasis web backend (axum): serves the frontend and proxies DICOM network access"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+weasis-core.workspace = true
+weasis-net.workspace = true
+
+[lints]
+workspace = true

@@ -138,7 +138,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 `cargo clippy --workspace -- -D warnings`, `cargo test --workspace` lulus, plus test baru langkah itu.
 
 ### Fase 0 — Persiapan & uji kelayakan
-- [ ] **0.1** Workspace `weasis-rs/` (4 crate kosong, `rust-toolchain.toml`, `.gitignore`).
+- [x] **0.1** Workspace `weasis-rs/` (4 crate kosong, `rust-toolchain.toml`, `.gitignore`).
   Verifikasi: `cargo check --workspace`.
 - [ ] **0.2** Target `wasm32-unknown-unknown` + Trunk; catat versi di `PROGRESS.md`.
   Verifikasi: `trunk --version`, `rustup target list --installed`.
