@@ -1,5 +1,7 @@
 //! Image processing for display: modality and VOI lookup tables, presets and color maps.
 
+mod color_map;
+mod color_space;
 mod lookup_table;
 mod modality;
 mod preset_list;
@@ -7,6 +9,11 @@ mod render;
 mod voi;
 mod window_preset;
 
+pub use color_map::{
+    BUILT_IN_COLOR_MAPS_JSON, ColorMap, ColorMapDomain, ColorStop,
+    DomainKind as ColorMapDomainKind, Interpolation, parse_color_maps,
+};
+pub use color_space::{ColorSpace, Rgba};
 pub use lookup_table::LookupTable;
 pub use modality::{ModalityLut, ModalityTransform};
 pub use preset_list::{PresetContext, PresetWindowLevel, preset_list};

@@ -167,7 +167,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [x] **1.3** Decode piksel: u8/u16/i16/float/RGB, multiframe, planar, YBR → RGB.
 - [x] **1.4** Modality LUT, pixel padding, VOI W/L linear/sigmoid, VOI LUT, MONOCHROME1, invert.
 - [x] **1.5** Preset W/L dari `windowPresets.json` (`WindowPresetRegistry`, `Window-Presets.md`).
-- [ ] **1.6** Color map dari `colormaps.json` (`ColorMapRegistry`, `ColorMap-Design.md`).
+- [x] **1.6** Color map dari `colormaps.json` (`ColorMapRegistry`, `ColorMap-Design.md`).
 - [ ] **1.7** Urutan & pemecahan seri (`SortSeriesStack`, `SplittingRules`, `SplittingModalityRules`).
 - [ ] **1.8** Geometri: orientasi, `GeometryOfSlice`, `SlicePlaneGeometry`, lokalizer, intersect.
 - [ ] **1.9** Overlay (`OverlayOp`) & shutter (`ShutterOp`).
