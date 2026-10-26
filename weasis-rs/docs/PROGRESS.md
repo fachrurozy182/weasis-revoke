@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 2 — Kerangka UI & explorer (Fase 0 & 1 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 2.2.b Panel dockable
-- **Langkah berikutnya:** 2.2.c Tab viewer & status bar
+- **Langkah terakhir selesai:** 2.2.c Tab viewer & indikator
+- **Langkah berikutnya:** 2.2.d Grup tab viewer (split kanan/bawah, pindah grup)
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -104,7 +104,8 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 - [x] **2.1.b** Komponen dasar: tombol, toggle, toolbar, dropdown, slider, panel collapsible, dialog + harness e2e
 - [x] **2.2.a** Jendela utama: menu bar (File, View, Display, Tools, Help) & tata letak — `WeasisWin`
 - [x] **2.2.b** Panel dockable kiri/kanan/bawah: sembunyi, geser, resize, tab (pengganti DockingFrames)
-- [ ] **2.2.c** Tab viewer & status bar
+- [x] **2.2.c** Tab viewer & indikator di menu bar (Java tidak punya status bar: `getStatusBar()` tidak pernah dipakai `WeasisWin`)
+- [ ] **2.2.d** Grup tab viewer: split kanan/bawah, pindah ke grup lain (`TabPlacement`)
 - [ ] **2.3.a** Model shortcut: registry, konteks, `KeyBinding` — `ShortcutManager`, `Shortcut-Management.md`
 - [ ] **2.3.b** Dispatch keyboard & akselerator menu di web
 - [ ] **2.4.a** Pipa impor di Web Worker: file & folder, progress — `LoadLocalDicom`, `LoadingTaskPanel`
@@ -173,3 +174,4 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 | 2026-10-26 | 2.1.b | `weasis-web::widgets::{Button, ToggleButton, Toolbar, DropDownButton, Slider, CollapsiblePanel, Dialog}` + `style/widgets.css` (meniru `JButton`/FlatLaf, `WtoolBar`, `DropDownButton`, `JSliderW`, `CollapsiblePanel`); halaman `#gallery`; harness e2e `tests/e2e` (Playwright 1.63.0) 5 test lulus + screenshot; e2e ditambahkan ke CI |
 | 2026-10-26 | 2.2.a | `weasis-web::shell::{MainWindow, MenuBar}` + `menus.rs`: menu File/View/Tools/Help dari `WeasisWin` (klik membuka, hover berpindah, Escape/klik luar menutup, submenu hover, item centang Anonymize); `i18n::tr` membaca `messages.properties` Java (base-ui, core) — bahasa lain di 2.9; Exit/cek update/folder log tidak ada di web (NOTE); e2e 4 test + screenshot. Bug backdrop menutupi menu bar ditemukan e2e & diperbaiki |
 | 2026-10-26 | 2.2.b | `weasis-web::shell::{dock_layout::DockLayout, dock::{Docking, DockPanel, DockStrip, DropZones}}`: panel kiri/kanan/bawah dengan tab, minimize ke strip samping (klik → dock lagi, bukan flyout DockingFrames — NOTE), close, splitter pointer (160–900 px), tab diseret ke zona drop untuk pindah sisi; tata letak disimpan di `localStorage` (D8); View ▸ Tools / Explorer berisi item centang (`buildSubMenu`); placeholder DICOM Explorer, Image Tools, Display (isi di 2.4/3.x); bundle i18n dicom-explorer & dicom-viewer2d; `web-sys` (DataTransfer, Storage); e2e 5 test + screenshot |
+| 2026-10-26 | 2.2.c | `weasis-web::shell::{Viewers, ViewerArea, Viewer}` + `tab_stack::TabStack`: tab viewer (konten tab tersembunyi dipertahankan), tutup → tab yang terakhir dipilih (riwayat fokus DockingFrames), menu konteks Close Others / Close All; `Viewers` lewat context Leptos untuk explorer (2.4/2.5); `MaskingIndicator` di ujung menu bar + judul jendela "Weasis v… — Anonymized display" seperti `updateTitle`; tombol capture → 7.2. Status bar di PLAN ternyata tidak ada di Java → diganti indikator. Demo viewer di `#gallery`; e2e 4 test baru (total 18) |

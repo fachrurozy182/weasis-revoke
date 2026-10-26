@@ -39,3 +39,17 @@ test('empty submenus are disabled until explorers fill them', async ({ page }) =
   await page.getByRole('button', { name: 'File' }).click();
   await expect(page.getByRole('menuitem', { name: 'Open' })).toHaveAttribute('aria-disabled', 'true');
 });
+
+test('anonymizing shows the masking badge and the title suffix', async ({ page }) => {
+  await expect(page).toHaveTitle(/^Weasis v[\d.]+$/);
+  await page.getByRole('button', { name: 'Tools' }).click();
+  await page.getByRole('menuitemcheckbox', { name: 'Anonymize displayed data' }).click();
+  const badge = page.getByRole('button', { name: 'Anonymized display' });
+  await expect(badge).toBeVisible();
+  await expect(page).toHaveTitle(/ — Anonymized display$/);
+  await badge.click();
+  await page.getByRole('menuitem', { name: 'Turn off anonymization' }).click();
+  await expect(badge).toBeHidden();
+  await page.getByRole('button', { name: 'Tools' }).click();
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Anonymize displayed data' })).toHaveAttribute('aria-checked', 'false');
+});

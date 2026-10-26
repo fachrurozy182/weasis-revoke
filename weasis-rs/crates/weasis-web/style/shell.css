@@ -11,6 +11,9 @@
 }
 
 .w-main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: var(--MenuBar-background);
   border-bottom: 1px solid var(--MenuBar-borderColor);
 }
@@ -36,8 +39,99 @@
 
 .w-viewers {
   position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Viewer tabs: the DockingFrames working area with the Eclipse theme. */
+.w-viewer-tabs {
+  display: flex;
+  flex: none;
+  overflow: hidden;
+  height: var(--TabbedPane-tabHeight, 32px);
+  background: var(--TabbedPane-mt-tab-background);
+}
+
+.w-viewer-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--TabbedPane-tabInsets, 5px 10px);
+  color: var(--TabbedPane-foreground);
+  border-bottom: var(--TabbedPane-tabSelectionHeight, 2px) solid transparent;
+  white-space: nowrap;
+}
+
+.w-viewer-tab:hover {
+  background: var(--TabbedPane-hoverColor);
+}
+
+.w-viewer-tab[aria-selected="true"] {
+  color: var(--TabbedPane-selectedForeground);
+  border-bottom-color: var(--TabbedPane-underlineColor);
+}
+
+.w-viewer-tab-close {
+  padding: 0 2px;
+  color: var(--Component-iconColor, var(--ui-foreground));
+  background: transparent;
+  border: none;
+}
+
+.w-viewer-tab-close::before {
+  content: "\2715";
+}
+
+.w-viewer-tab-close:hover {
+  color: var(--Component-hoverIconColor);
+}
+
+.w-viewer-content {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+
+.w-viewer {
+  position: absolute;
+  inset: 0;
+}
+
+.w-viewer[hidden] {
+  display: none;
+}
+
+/* Menus opened at the pointer. */
+.w-menu.w-context-menu {
+  position: fixed;
+  top: auto;
+  min-width: 160px;
+  margin: 0;
+}
+
+/* Indicators at the end of the menu bar. */
+.w-indicator {
+  position: relative;
+  margin-right: 8px;
+}
+
+/* MaskingIndicator: round rectangle with the warning color and black text. */
+.w-masking-indicator {
+  /* The size comes from the "small" class. */
+  font-family: inherit;
+  color: #000;
+  background: var(--Component-warning-focusedBorderColor, #f2c55c);
+  border: none;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.w-indicator-menu {
+  right: 0;
+  left: auto;
+  min-width: 200px;
 }
 
 /* Docked panels: a DockingFrames stack per side with its tabs, minimize and close buttons. */

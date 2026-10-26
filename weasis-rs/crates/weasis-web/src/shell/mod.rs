@@ -4,16 +4,21 @@
 
 mod dock;
 mod dock_layout;
+mod masking_indicator;
 mod menu;
 mod menus;
+mod tab_stack;
+mod viewers;
 
 use leptos::prelude::*;
 
 use crate::i18n::tr;
 use dock::{DockPanel, DockStrip, Dockable, Docking, DropZones};
 use dock_layout::{DockMode, DockSide};
+use masking_indicator::{MaskingIndicator, masking_label};
 use menu::{MenuBar, MenuItem};
 use menus::{action, main_menus};
+pub use viewers::{Viewer, ViewerArea, Viewers};
 
 /// Online tutorials (`weasis.help.online` of the launcher preferences).
 const ONLINE_HELP_URL: &str = "https://nroduit.github.io/en/tutorials/";
@@ -26,6 +31,9 @@ pub fn MainWindow() -> impl IntoView {
     let anonymize = RwSignal::new(false);
     let docking = Docking::new(dockables());
     let (tools, explorers) = dockable_menu_items(docking);
+    let viewers = Viewers::new();
+    provide_context(viewers);
+    Effect::new(move |_| document().set_title(&window_title(anonymize.get())));
     let on_action = Callback::new(move |id: &'static str| match id {
         action::ONLINE_HELP => open_in_new_tab(ONLINE_HELP_URL),
         action::BUG_REPORT => open_in_new_tab(BUG_REPORT_URL),
@@ -43,6 +51,8 @@ pub fn MainWindow() -> impl IntoView {
         <div class="w-main-window">
             <header class="w-main-header">
                 <MenuBar menus=main_menus(anonymize, tools, explorers) on_action=on_action />
+                // TODO(7.2): the capture button (screenshots and recordings of the selected viewer).
+                <MaskingIndicator masking=anonymize />
             </header>
             <div class="w-toolbars"></div>
             <main class="w-main-area">
@@ -50,6 +60,7 @@ pub fn MainWindow() -> impl IntoView {
                 <DockPanel docking=docking side=DockSide::Left />
                 <div class="w-center">
                     <div class="w-viewers">
+                        <ViewerArea viewers=viewers />
                         <DropZones docking=docking />
                     </div>
                     <DockPanel docking=docking side=DockSide::Bottom />
@@ -59,6 +70,16 @@ pub fn MainWindow() -> impl IntoView {
                 <DockStrip docking=docking side=DockSide::Right />
             </main>
         </div>
+    }
+}
+
+/// "Weasis v<version>", followed by the masking badge text while masking is on.
+fn window_title(masking: bool) -> String {
+    let title = format!("Weasis v{}", env!("CARGO_PKG_VERSION"));
+    if masking {
+        format!("{title} — {}", masking_label())
+    } else {
+        title
     }
 }
 

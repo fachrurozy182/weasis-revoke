@@ -259,3 +259,11 @@
 .gallery-panel {
   width: 300px;
 }
+
+.gallery-viewers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 200px;
+  margin-top: 16px;
+}

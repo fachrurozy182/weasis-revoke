@@ -187,7 +187,8 @@ perbandingan dengan `testdata/golden/` ditambahkan setelah langkah 0.5 dijalanka
   slider, collapsible panel, dialog) meniru FlatLaf.
 - [ ] **2.2** Jendela utama meniru `WeasisWin`: menu (File, View, Display, Tools, Help),
   toolbar, tab viewer, panel dockable kiri/kanan yang bisa disembunyikan, digeser, di-resize
-  (pengganti DockingFrames), status bar.
+  (pengganti DockingFrames), status bar (Java tidak punya status bar; yang ada indikator di ujung
+  menu bar — lihat PROGRESS 2.2.c).
 - [ ] **2.3** Shortcut (`ShortcutManager`, `KeyBinding`, `Shortcut-Management.md`).
 - [ ] **2.4** Import lokal: file, folder, drag & drop, DICOMDIR, ZIP; parse di Worker + progress
   (`LocalImport`, `DicomDirImport`, `LoadLocalDicom`, `LoadingTaskPanel`).
