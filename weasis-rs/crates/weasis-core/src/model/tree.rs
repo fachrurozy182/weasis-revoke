@@ -1,16 +1,18 @@
 //! The model tree: patients contain studies, studies contain series, series contain instances.
 //!
 //! Each node is identified by a key: the patient pseudo UID (see [`PatientIdentity`]), the
-//! Study Instance UID, the sub-series UID (equal to the Series Instance UID until a series is
-//! split, step 1.7) and the SOP Instance UID. Children keep their insertion order; sorting is
+//! Study Instance UID, the sub-series UID (the Series Instance UID, or `#<n>.<Series Instance UID>`
+//! for the parts split off by [`SplittingRules`]) and the SOP Instance UID. Children keep their insertion order; sorting is
 //! done by the explorer and the viewer.
 //!
 //! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/DicomModel.java`
 //! and `weasis-core/src/main/java/org/weasis/core/api/media/data/MediaSeriesGroupNode.java`.
 //!
 //! [`PatientIdentity`]: super::PatientIdentity
+//! [`SplittingRules`]: super::SplittingRules
 
 use super::Attributes;
+use crate::dicom::ObjectKind;
 
 /// A patient node.
 #[derive(Debug, Clone, PartialEq)]
@@ -41,6 +43,8 @@ pub struct SeriesNode {
     pub key: String,
     /// Series-level attributes.
     pub attributes: Attributes,
+    /// Number of the part once the series is split (1 for the original series).
+    pub split_number: Option<u32>,
     /// Instances of this series.
     pub instances: Vec<InstanceNode>,
 }
@@ -50,6 +54,8 @@ pub struct SeriesNode {
 pub struct InstanceNode {
     /// SOP Instance UID.
     pub sop_instance_uid: String,
+    /// Kind of object.
+    pub kind: ObjectKind,
     /// Instance-level attributes.
     pub attributes: Attributes,
 }
@@ -65,6 +71,8 @@ pub struct NewInstance {
     pub series_key: String,
     /// SOP Instance UID.
     pub sop_instance_uid: String,
+    /// Kind of object.
+    pub kind: ObjectKind,
     /// Attributes for the patient node.
     pub patient: Attributes,
     /// Attributes for the study node.
@@ -133,6 +141,7 @@ impl DicomModel {
             || SeriesNode {
                 key: new.series_key.clone(),
                 attributes: Attributes::new(),
+                split_number: None,
                 instances: Vec::new(),
             },
         );
@@ -145,6 +154,7 @@ impl DicomModel {
         if !is_duplicate {
             series.instances.push(InstanceNode {
                 sop_instance_uid: new.sop_instance_uid,
+                kind: new.kind,
                 attributes: new.instance,
             });
         }
@@ -170,6 +180,14 @@ impl DicomModel {
             .iter()
             .flat_map(|p| &p.studies)
             .flat_map(|s| &s.series)
+            .find(|s| s.key == key)
+    }
+
+    pub(super) fn series_mut(&mut self, key: &str) -> Option<&mut SeriesNode> {
+        self.patients
+            .iter_mut()
+            .flat_map(|p| &mut p.studies)
+            .flat_map(|s| &mut s.series)
             .find(|s| s.key == key)
     }
 

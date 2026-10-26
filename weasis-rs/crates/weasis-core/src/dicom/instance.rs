@@ -8,9 +8,9 @@
 
 use dicom_dictionary_std::tags;
 
-use super::{DicomFile, frame_macro, item_text};
+use super::{DicomFile, frame_macro, item_text, object_kind};
 use crate::error::{Error, Result};
-use crate::model::{Attributes, Level, NO_VALUE, NewInstance, PatientIdentity};
+use crate::model::{Attributes, Level, NO_VALUE, NewInstance, PatientIdentity, SplittingRules};
 
 /// Builds the model instance of a parsed file.
 ///
@@ -37,11 +37,16 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
 
     let mut instance = level_attributes(file, Level::Instance);
     instance.set(tags::TRANSFER_SYNTAX_UID, file.transfer_syntax());
-    for tag in [
+    let extra_tags = [
         tags::INSTANCE_NUMBER,
+        tags::NUMBER_OF_FRAMES,
         tags::CONCATENATION_UID,
         tags::CONCATENATION_FRAME_OFFSET_NUMBER,
-    ] {
+    ];
+    for tag in extra_tags
+        .into_iter()
+        .chain(SplittingRules::built_in().tags())
+    {
         if let Some(value) = file.text(tag) {
             instance.set(tag, value);
         }
@@ -51,9 +56,10 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
     Ok(NewInstance {
         patient_key: identity.pseudo_uid(),
         study_uid,
-        // A series is split into sub-series in step 1.7; until then they share the same key.
+        // The sub-series is chosen when the instance is added (`DicomModel::add_split_instance`).
         series_key: series_uid,
         sop_instance_uid,
+        kind: object_kind(file),
         patient: level_attributes(file, Level::Patient),
         study: level_attributes(file, Level::Study),
         series: level_attributes(file, Level::Series),
@@ -145,6 +151,24 @@ mod tests {
                 .map(|s| s.instances.len()),
             Some(2)
         );
+    }
+
+    #[test]
+    fn a_uniform_ct_series_is_not_split() {
+        let rules = crate::model::SplittingRules::built_in();
+        let mut model = DicomModel::new();
+        for slice in 1..=16 {
+            let new = instance_of(&format!("synthetic/ct-series/CT{slice:03}.dcm"));
+            assert_eq!(new.kind, crate::dicom::ObjectKind::Image);
+            assert_eq!(
+                new.instance.get(tags::IMAGE_TYPE),
+                Some("ORIGINAL\\PRIMARY\\AXIAL")
+            );
+            model.add_split_instance(new, rules);
+        }
+        let study = model.study("2.25.1234567890.1").expect("study");
+        assert_eq!(study.series.len(), 1);
+        assert_eq!(study.series[0].split_number, None);
     }
 
     #[test]

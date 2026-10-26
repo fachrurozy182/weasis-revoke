@@ -168,7 +168,7 @@ Verifikasi standar sebuah langkah (kecuali disebut lain): `cargo fmt --check`,
 - [x] **1.4** Modality LUT, pixel padding, VOI W/L linear/sigmoid, VOI LUT, MONOCHROME1, invert.
 - [x] **1.5** Preset W/L dari `windowPresets.json` (`WindowPresetRegistry`, `Window-Presets.md`).
 - [x] **1.6** Color map dari `colormaps.json` (`ColorMapRegistry`, `ColorMap-Design.md`).
-- [ ] **1.7** Urutan & pemecahan seri (`SortSeriesStack`, `SplittingRules`, `SplittingModalityRules`).
+- [x] **1.7** Urutan & pemecahan seri (`SortSeriesStack`, `SplittingRules`, `SplittingModalityRules`).
 - [ ] **1.8** Geometri: orientasi, `GeometryOfSlice`, `SlicePlaneGeometry`, lokalizer, intersect.
 - [ ] **1.9** Overlay (`OverlayOp`) & shutter (`ShutterOp`).
 - [ ] **1.10** DICOMDIR (`DicomDirLoader`) & ZIP (`DicomZipCodec`).
@@ -271,7 +271,8 @@ Setiap langkah di fase ini besar; wajib dipecah jadi sub-langkah sebelum dikerja
 - [ ] **7.4** Export ISO (`IsoImageExport`).
 - [ ] **7.5** Cetak: lewat browser (`ImagePrint`, `PrintOptions`) & DICOM Print lewat backend (`DicomPrint`).
 - [ ] **7.6** Dialog preferensi: semua `*PrefView` (umum, tema, view, zoom, label, grafik,
-  masking, proxy, layar, viewer, preset, MPR, segmentasi, explorer, node).
+  masking, proxy, layar, viewer, preset, MPR, segmentasi, explorer, node). Termasuk layer site
+  `seriesSplittingRules.json` untuk aturan pemecahan seri (`SplittingRulesJson`).
 
 ### Fase 8 — Rilis
 - [ ] **8.1** axum: aset tersemat, kompresi, header keamanan & cache.

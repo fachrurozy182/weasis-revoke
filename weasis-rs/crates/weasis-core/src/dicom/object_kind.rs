@@ -18,9 +18,10 @@ const COLOR_PALETTE: &str = "1.2.840.10008.5.1.4.1.1.39.1";
 const VIDEO_TRANSFER_SYNTAX_PREFIX: &str = "1.2.840.10008.1.2.4.10";
 
 /// The kind of a DICOM object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ObjectKind {
     /// Single or multi-frame image.
+    #[default]
     Image,
     /// Image encoded as a video stream (MPEG-2, MPEG-4, HEVC).
     Video,

@@ -132,6 +132,7 @@ mod tests {
         }
         InstanceNode {
             sop_instance_uid: uid.to_owned(),
+            kind: crate::dicom::ObjectKind::Image,
             attributes,
         }
     }
