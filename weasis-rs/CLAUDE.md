@@ -20,7 +20,8 @@ Weasis 4.8.0-SNAPSHOT) adalah **acuan** yang hanya dibaca.
 - Kode wajib mengikuti `weasis-rs/docs/CODING-GUIDE.md`. Daftar fitur: `weasis-rs/docs/FEATURES.md`.
 - Uji coba terhadap aplikasi Java / server PACS hanya atas instruksi pemilik (D12).
 - Acuan `weasis-dicom-tools`: clone `https://github.com/fachrurozy182/weasis-dicom-tools` (branch `master`)
-  ke `../fachrurozy182/weasis-dicom-tools` jika belum ada.
+  ke `../fachrurozy182/weasis-dicom-tools` jika belum ada. Sama untuk `weasis-core-img`:
+  `https://github.com/fachrurozy182/weasis-core-img` (branch `master`) → `../fachrurozy182/weasis-core-img`.
 - Bahasa dokumen di `weasis-rs/docs/`: Indonesia. Bahasa kode & komentar: Inggris.
 - Aturan dokumentasi di `CLAUDE.md` root (tanpa roadmap/status di `docs/`) berlaku untuk modul
   Java, bukan untuk `weasis-rs/docs/`, yang memang berisi rencana & progres atas permintaan pemilik repo.

@@ -10,6 +10,9 @@ keputusan, langkah). Status harian dicatat di [`PROGRESS.md`](PROGRESS.md).
 - Acuan tambahan: repo [`fachrurozy182/weasis-dicom-tools`](https://github.com/fachrurozy182/weasis-dicom-tools)
   branch `master` (commit `73a359e`, 218 file, ±45 ribu baris). Clone baca-saja:
   `git clone --depth 1 https://github.com/fachrurozy182/weasis-dicom-tools ../fachrurozy182/weasis-dicom-tools`
+- Acuan tambahan: repo [`fachrurozy182/weasis-core-img`](https://github.com/fachrurozy182/weasis-core-img)
+  branch `master` (commit `10f88e4`, 54 file, ±10 ribu baris). Clone baca-saja:
+  `git clone --depth 1 https://github.com/fachrurozy182/weasis-core-img ../fachrurozy182/weasis-core-img`
 - Dokumen pendukung: [`FEATURES.md`](FEATURES.md) (daftar fitur), [`CODING-GUIDE.md`](CODING-GUIDE.md)
   (standar kode), [`PROGRESS.md`](PROGRESS.md) (status).
 
@@ -98,7 +101,7 @@ Library eksternal yang dipakai Weasis:
 | Library | Versi dipakai master | Isi penting | Source |
 |---|---|---|---|
 | `weasis-dicom-tools` | 5.35.1 | decode & render (`org.dcm4che3.img`), LUT/preset, overlay, PR, geometri (`geom`), hanging protocol (`hp`), manifest (`mf`), DIMSE (`op`), DICOMweb (`web`), Dicomizer, anatomi (`ref`) | repo pengguna, `master` = 5.35.2 (beda patch; perbedaan perilaku dicatat jika ditemukan) |
-| `weasis-core-img` | 5.0.0.1 | operasi gambar OpenCV, LUT & color map (`org.weasis.opencv.*`, `org.weasis.core.util.*`; ±840 import) | **tidak tersedia** (lihat Q2); perilaku diturunkan dari pemanggilan + standar DICOM |
+| `weasis-core-img` | 5.0.0.1 | operasi gambar OpenCV (`opencv.op`), W/L & LUT (`opencv.op.lut`), color map (`opencv.op.lut.colormap`), kontur segmentasi (`opencv.seg`), utilitas (`core.util`); ±840 import | repo pengguna, `master` = 5.0.0.1 (sama) |
 
 ### 4.2 Data konfigurasi yang dipakai ulang (D7)
 
@@ -287,14 +290,13 @@ Setiap langkah di fase ini besar; wajib dipecah jadi sub-langkah sebelum dikerja
 | # | Pertanyaan | Status |
 |---|---|---|
 | Q1 | Server PACS untuk uji integrasi (dcm4chee di Docker, atau ada server sendiri)? | Ditunda bersama uji coba (D12) |
-| Q2 | Source `weasis-core-img` 5.0.0.1 tersedia (repo pengguna)? | Dibutuhkan sebelum Fase 1 bila ada; tanpa itu tetap bisa jalan |
+| Q2 | Source `weasis-core-img` 5.0.0.1 tersedia? | Selesai: repo `fachrurozy182/weasis-core-img` (`master`) |
 
 ## 8. Risiko
 
 | Risiko | Mitigasi |
 |---|---|
 | Codec JPEG 2000 / JPEG-LS / HTJ2K / video tidak bisa di WASM | Diuji di 0.4; cadangan: decode/transcode di server (keputusan baru) |
-| Source `weasis-core-img` tidak tersedia | Turunkan dari pemanggilan + standar DICOM; minta source ke pemilik (Q2) |
 | Volume besar (MPR, 3D, fusion) melebihi memori browser | Buffer per volume di Worker, tipe data asli (u16), batas memori seperti `Memory-Management.md` |
 | Swing → web: perilaku docking & dialog berbeda | Ikuti tata letak & isi panel, bukan mekanisme Swing-nya |
 | Scope sangat besar (±233 rb baris) | Fase 0–4 dulu agar viewer inti cepat terpakai; fase lanjut dipecah saat dimulai |

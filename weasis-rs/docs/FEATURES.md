@@ -9,16 +9,18 @@ Singkatan path:
 `codec` = `weasis-dicom/weasis-dicom-codec/.../org/weasis/dicom/codec`,
 `explorer` = `weasis-dicom/weasis-dicom-explorer/.../org/weasis/dicom/explorer`,
 `v2d` = `weasis-dicom/weasis-dicom-viewer2d/.../org/weasis/dicom/viewer2d`,
-`tools` = repo `weasis-dicom-tools` (`.../org/weasis/dicom` dan `.../org/dcm4che3`).
+`tools` = repo `weasis-dicom-tools` (`.../org/weasis/dicom` dan `.../org/dcm4che3`),
+`img` = repo `weasis-core-img` (`.../org/weasis/opencv` dan `.../org/weasis/core/util`).
 
 ## A. Data & codec DICOM
 
 - [ ] Model Patient/Study/Series/Instance, grup & node seri — `explorer/DicomModel`, `core/api/media/data/MediaSeries*`, `TagD`, `TagW` — 1.1
 - [ ] Baca file DICOM + charset spesifik — `codec/DicomMediaIO`, `codec/display/CharsetEncoding`, `tools/dcm4che3/img/DicomImageReader` — 1.2
 - [ ] Decode piksel semua transfer syntax, multiframe, YBR, palette color — `tools/dcm4che3/img/*`, `codec/TransferSyntax`, `tools/.../util/PaletteColorUtils` — 1.3
-- [ ] Modality LUT, VOI LUT, W/L linear/sigmoid, pixel padding, MONOCHROME1 — `tools/.../img/lut/ModalityLutModule`, `VoiLutModule`, `codec/display/WindowAndPresetsOp` — 1.4
+- [ ] Modality LUT, VOI LUT, W/L linear/sigmoid, pixel padding, MONOCHROME1 — `tools/.../img/lut/ModalityLutModule`, `VoiLutModule`, `codec/display/WindowAndPresetsOp`, `img/op/lut/*` (`LutShape`, `WlParams`, `PresentationStateLut`) — 1.4
 - [ ] Preset W/L per modalitas & anatomi — `codec/display/WindowPresetRegistry`, `WindowPreset`, `windowPresets.json`, `tools/.../lut/PresetWindowLevel` — 1.5
-- [ ] Color map 2D — `core/api/image/lut/ColorMapRegistry`, `colormaps.json` — 1.6
+- [ ] Color map 2D — `core/api/image/lut/ColorMapRegistry`, `colormaps.json`, `img/op/lut/colormap/*` — 1.6
+- [ ] Operasi gambar dasar (konversi, transformasi, analisis) — `img/op/ImageConversion`, `ImageTransformer`, `ImageAnalyzer` — 1.3, 1.14
 - [ ] Urutan stack & pemecahan seri — `codec/SortSeriesStack`, `codec/utils/SplittingRules*` — 1.7
 - [ ] Geometri irisan, orientasi pasien, lokalizer, perpotongan — `codec/geometry/*`, `tools/weasis/dicom/geom/*` — 1.8
 - [ ] Overlay (60xx, embedded) & shutter — `codec/display/OverlayOp`, `ShutterOp`, `tools/.../img/data/OverlayData` — 1.9
@@ -95,7 +97,7 @@ Singkatan path:
 - [ ] Curved MPR & cross-section — `v2d/mpr/cmpr/*` — 6.2
 - [ ] MIP — `v2d/mip/*` — 6.3
 - [ ] Fusion PET/CT — `v2d/fusion/*` — 6.4
-- [ ] Segmentasi DICOM SEG (kontur, label map, visibilitas) — `codec/seg/*`, `core/ui/model/graphic/imp/seg/*`, `v2d/dockable/SegmentationTool` — 6.5
+- [ ] Segmentasi DICOM SEG (kontur, label map, visibilitas) — `codec/seg/*`, `img/seg/*`, `core/ui/model/graphic/imp/seg/*`, `v2d/dockable/SegmentationTool` — 6.5
 - [ ] SR viewer — `weasis-dicom-sr/*` — 6.6
 - [ ] RT: struktur, dosis, isodosis, DVH — `weasis-dicom-rt/*` — 6.7
 - [ ] Waveform ECG + pengukuran & marker — `weasis-dicom-wave/*` — 6.8
