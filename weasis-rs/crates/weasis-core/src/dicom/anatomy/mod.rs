@@ -131,19 +131,24 @@ impl AnatomicRegion {
     }
 
     fn from_body_part_examined(file: &DicomFile) -> Option<Self> {
-        let term = file.text(tags::BODY_PART_EXAMINED)?;
+        file.text(tags::BODY_PART_EXAMINED)
+            .map(|term| Self::from_term(&term))
+    }
+
+    /// Anatomy of a Body Part Examined term; unknown terms are kept as they are.
+    pub fn from_term(term: &str) -> Self {
         // NOTE: Body Part Examined is CS (upper case, PS3.5 §6.2); lower-case values written by
         // some modalities are matched too, as in the Java viewer.
-        let body_part = body_part_by_legacy_code(&term)
+        let body_part = body_part_by_legacy_code(term)
             .or_else(|| body_part_by_legacy_code(&term.to_uppercase()));
-        Some(match body_part {
+        match body_part {
             Some(part) => Self::of_body_part(part),
             None => Self {
                 scheme: String::new(),
-                code: term,
+                code: term.to_owned(),
                 body_part: None,
             },
-        })
+        }
     }
 
     fn of_body_part(part: &'static BodyPart) -> Self {

@@ -18,6 +18,10 @@ pub enum Error {
     #[error("unsupported transfer syntax {0}")]
     UnsupportedTransferSyntax(String),
 
+    /// A configuration file (presets, color maps, ...) is invalid.
+    #[error("invalid configuration: {0}")]
+    Configuration(String),
+
     /// The pixel data can only be decoded by the server (decision D14).
     #[error("{0} must be decoded by the server")]
     NeedsServerDecoding(String),

@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.5.a Anatomi gambar
-- **Langkah berikutnya:** 1.5.b Preset W/L dari `windowPresets.json`
+- **Langkah terakhir selesai:** 1.5 Preset W/L
+- **Langkah berikutnya:** 1.6.a Color map dari `colormaps.json`
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -74,7 +74,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.4.a** Modality LUT (rescale slope/intercept, Modality LUT Sequence), pixel padding — `ModalityLutModule`, `RescaleUtils`
 - [x] **1.4.b** VOI: W/L linear, linear exact, sigmoid; VOI LUT Sequence; invert; MONOCHROME1 — `VoiLutModule`, `LutShape`, `WlParams`, `ImageRendering`
 - [x] **1.5.a** Anatomi gambar (body part, region group, selector) — `weasis-dicom-tools` `ref/*`, `regionGroups.json`
-- [ ] **1.5.b** Parse `windowPresets.json` + daftar preset per gambar (urutan, layer, percent) — `WindowPresetRegistry`, `WindowPreset`, `PresetWindowLevel`, `Window-Presets.md`
+- [x] **1.5.b** Parse `windowPresets.json` + daftar preset per gambar (urutan, layer, percent) — `WindowPresetRegistry`, `WindowPreset`, `PresetWindowLevel`, `Window-Presets.md`
 - [ ] **1.6.a** Parse `colormaps.json` + sampling color map — `ColorMapRegistry`, `ColorMapCompiler`, `ColorMap-Design.md`
 - [ ] **1.7.a** Urutan stack — `SortSeriesStack`
 - [ ] **1.7.b** Aturan pemecahan seri (subseries) — `SplittingRules`, `SplittingModalityRules`
@@ -121,3 +121,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.4.a | `image::{ModalityLut, LookupTable}`, `dicom::frame_macro` (functional groups); hasil = pydicom `apply_modality_lut`; padding US-sebagai-signed ditafsir ulang |
 | 2026-10-26 | 1.4.b | `image::{VoiLut, VoiParams, LutShape, render_gray}`: 7 bentuk LUT (rumus Java `LookupTableUtils`), Frame VOI LUT per frame, tabel per nilai stored; cocok dengan pydicom `apply_windowing`/`apply_voi_lut` |
 | 2026-10-26 | 1.5.a | `dicom::anatomy` (407 body part dari `BodyPart.java` via `tools/anatomy/generate.py`, 390 kode SRT, `regionGroups.json` di `assets/config/`); SurfacePart/OtherPart menyusul di 6.11 |
+| 2026-10-26 | 1.5.b | `image::{WindowPreset, PresetLayers, preset_list}`: JSON + layer (built-in/site/user), percent image/series, anatomi, shortcut & default per layer; urutan = `PresetCollectionBuilder` |
