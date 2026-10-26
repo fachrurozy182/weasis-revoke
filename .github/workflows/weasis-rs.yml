@@ -1,0 +1,61 @@
+name: weasis-rs
+# Checks the Rust web rewrite in `weasis-rs/` (format, lint, tests natively and in
+# WebAssembly, frontend build). Runs only when that folder or this workflow changes.
+on:
+  push:
+    paths:
+      - 'weasis-rs/**'
+      - '.github/workflows/weasis-rs.yml'
+  pull_request:
+    paths:
+      - 'weasis-rs/**'
+      - '.github/workflows/weasis-rs.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: weasis-rs
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0  # v2.9.3
+        with:
+          workspaces: weasis-rs
+
+      - name: Read the wasm-bindgen version from Cargo.lock
+        id: versions
+        run: |
+          version=$(grep -A1 '^name = "wasm-bindgen"$' Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')
+          echo "wasm_bindgen=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: taiki-e/install-action@1e29709c0ec63babbe8f266397a465f29a825f91  # v2.87.31
+        with:
+          tool: trunk@0.22.1,wasm-bindgen@${{ steps.versions.outputs.wasm_bindgen }}
+
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Lint (native)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Lint (WebAssembly)
+        run: cargo clippy -p weasis-core -p weasis-web --all-targets --target wasm32-unknown-unknown -- -D warnings
+
+      - name: Test (native)
+        run: cargo test --workspace
+
+      - name: Test (WebAssembly, Node.js)
+        run: cargo test -p weasis-core --target wasm32-unknown-unknown
+
+      - name: Build frontend
+        working-directory: weasis-rs/crates/weasis-web
+        run: trunk build --release
