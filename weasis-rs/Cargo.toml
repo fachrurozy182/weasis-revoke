@@ -22,6 +22,7 @@ weasis-net = { path = "crates/weasis-net" }
 # `rayon` threads are not available in the browser and its JPEG/JPEG 2000 codecs are
 # replaced by the pure-Rust codecs below (decision D14).
 dicom-object = { version = "0.10.0", features = ["deflate"] }
+dicom-core = "0.10.0"
 dicom-dictionary-std = "0.10.0"
 dicom-transfer-syntax-registry = { version = "0.10.0", default-features = false }
 dicom-pixeldata = { version = "0.10.0", default-features = false, features = ["rle", "deflate"] }
@@ -30,6 +31,9 @@ dicom-pixeldata = { version = "0.10.0", default-features = false, features = ["r
 oxiarc-jpeg = "0.4.2"
 jpegls = { package = "pure_jpegls", version = "2.0.0" }
 oxideav-jpeg2000 = { version = "0.0.17", default-features = false }
+
+# Text encodings for ISO 2022 code extensions (pure Rust, works in WebAssembly).
+encoding_rs = "0.8.42"
 
 # Error types (docs/CODING-GUIDE.md §5).
 thiserror = "2.0.21"

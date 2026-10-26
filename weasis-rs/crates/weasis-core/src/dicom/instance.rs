@@ -7,7 +7,6 @@
 //! (`writeInstanceTags`) and `weasis-dicom/weasis-dicom-explorer/.../LoadDicom.java`.
 
 use dicom_dictionary_std::tags;
-use dicom_object::{DefaultDicomObject, Tag};
 
 use super::DicomFile;
 use crate::error::{Error, Result};
@@ -18,28 +17,32 @@ use crate::model::{Attributes, Level, NO_VALUE, NewInstance, PatientIdentity};
 /// Fails when the SOP Instance UID is missing: it is mandatory (Type 1) in every IOD and
 /// identifies the object in the model.
 pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
-    let object = file.object();
-    let sop_instance_uid = text(object, tags::SOP_INSTANCE_UID)
+    let sop_instance_uid = file
+        .text(tags::SOP_INSTANCE_UID)
         .ok_or_else(|| Error::UnreadableDicom("missing SOP Instance UID".to_owned()))?;
 
     let identity = PatientIdentity::new(
-        text(object, tags::PATIENT_ID).as_deref(),
-        text(object, tags::ISSUER_OF_PATIENT_ID).as_deref(),
-        text(object, tags::PATIENT_NAME).as_deref(),
+        file.text(tags::PATIENT_ID).as_deref(),
+        file.text(tags::ISSUER_OF_PATIENT_ID).as_deref(),
+        file.text(tags::PATIENT_NAME).as_deref(),
     );
     // NOTE: Study and Series Instance UIDs are Type 1, but some non-conformant files miss them.
     // They are grouped under "UNKNOWN" instead of being rejected, so they can still be viewed.
-    let study_uid = text(object, tags::STUDY_INSTANCE_UID).unwrap_or_else(|| NO_VALUE.to_owned());
-    let series_uid = text(object, tags::SERIES_INSTANCE_UID).unwrap_or_else(|| NO_VALUE.to_owned());
+    let study_uid = file
+        .text(tags::STUDY_INSTANCE_UID)
+        .unwrap_or_else(|| NO_VALUE.to_owned());
+    let series_uid = file
+        .text(tags::SERIES_INSTANCE_UID)
+        .unwrap_or_else(|| NO_VALUE.to_owned());
 
-    let mut instance = level_attributes(object, Level::Instance);
+    let mut instance = level_attributes(file, Level::Instance);
     instance.set(tags::TRANSFER_SYNTAX_UID, file.transfer_syntax());
     for tag in [
         tags::INSTANCE_NUMBER,
         tags::CONCATENATION_UID,
         tags::CONCATENATION_FRAME_OFFSET_NUMBER,
     ] {
-        if let Some(value) = text(object, tag) {
+        if let Some(value) = file.text(tag) {
             instance.set(tag, value);
         }
     }
@@ -50,31 +53,22 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
         // A series is split into sub-series in step 1.7; until then they share the same key.
         series_key: series_uid,
         sop_instance_uid,
-        patient: level_attributes(object, Level::Patient),
-        study: level_attributes(object, Level::Study),
-        series: level_attributes(object, Level::Series),
+        patient: level_attributes(file, Level::Patient),
+        study: level_attributes(file, Level::Study),
+        series: level_attributes(file, Level::Series),
         instance,
     })
 }
 
 /// Copies the non-empty text attributes of one level.
-fn level_attributes(object: &DefaultDicomObject, level: Level) -> Attributes {
+fn level_attributes(file: &DicomFile, level: Level) -> Attributes {
     let mut attributes = Attributes::new();
     for &tag in level.attributes() {
-        if let Some(value) = text(object, tag) {
+        if let Some(value) = file.text(tag) {
             attributes.set(tag, value);
         }
     }
     attributes
-}
-
-/// Text value of an attribute without padding, or `None` when absent, empty or a sequence.
-fn text(object: &DefaultDicomObject, tag: Tag) -> Option<String> {
-    let element = object.element(tag).ok()?;
-    let value = element.to_str().ok()?;
-    // Values are padded with a space or NUL to an even length (PS3.5 §6.2).
-    let trimmed = value.trim_matches([' ', '\0']);
-    (!trimmed.is_empty()).then(|| trimmed.to_owned())
 }
 
 #[cfg(test)]

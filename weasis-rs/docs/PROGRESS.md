@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai kecuali 0.7 menunggu CI hijau; 0.5 ditunda)
-- **Langkah terakhir selesai:** 1.2.b Ekstrak tag tiap level ke model
-- **Langkah berikutnya:** 1.2.c Charset (Specific Character Set)
+- **Langkah terakhir selesai:** 1.2.c Charset
+- **Langkah berikutnya:** 1.2.d Jenis objek dari SOP Class
 - **Menunggu:** 0.7 CI run pertama (`weasis-rs.yml`) — centang setelah hijau
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
@@ -66,7 +66,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.1.c** Pohon Patient → Study → Series → Instance: tambah, cari, hapus, gabung pasien/studi — `DicomModel`, `MediaSeriesGroupNode`, `TreeModelNode`
 - [x] **1.2.a** Baca file/bytes → objek DICOM (preamble otomatis, file tanpa meta, error jelas) — `DicomMediaIO.readMetaData`
 - [x] **1.2.b** Ekstrak tag tiap level ke model + atribut instance (SOP, instance number, TS, concatenation) — `DicomMediaIO.writeInstanceTags`
-- [ ] **1.2.c** Charset (Specific Character Set) — `CharsetEncoding`
+- [x] **1.2.c** Charset (Specific Character Set) — `CharsetEncoding`
 - [ ] **1.2.d** Jenis objek (gambar, video, PR, KO, SEG, SR, dokumen, waveform, tidak didukung) dari SOP Class — `DicomMediaIO` (MIME types), `DicomSpecialElementFactory`
 - [ ] **1.3.a** Ekstraksi bytes per frame dari pixel data terenkapsulasi (offset table, multi-fragmen) — `ExtendSegmentedInputImageStream`
 - [ ] **1.3.b** Modul codec: dispatch per transfer syntax (D14), buffer piksel bertipe (u8/u16/i16/i32/f32/RGB) — `DicomImageReader`
@@ -111,3 +111,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.1 | `weasis_core::model`: `Level`, `PatientIdentity`, `Attributes`, `DicomModel` (tambah/cari/hapus/gabung), 15 unit test |
 | 2026-10-26 | 1.2.a | `weasis_core::dicom::read_dicom` (preamble otomatis, tanpa file meta: tebak Implicit/Explicit LE), `weasis_core::error::Error` |
 | 2026-10-26 | 1.2.b | `weasis_core::dicom::new_instance`; studi yang sudah ada tetap di pasiennya (seperti `LoadDicom`); UID studi/seri hilang → "UNKNOWN", SOP UID hilang → error |
+| 2026-10-26 | 1.2.c | dicom-rs tidak mendukung ISO 2022 (Jepang/Korea/Cina): decoder sendiri `dicom::charset` di atas `encoding_rs`; 13 file charset pydicom lulus (`tests/charset_support.rs`); CI: `concurrency` membatalkan run lama |

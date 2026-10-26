@@ -33,6 +33,7 @@ berlisensi bebas. Total ±9 MB.
 | Overlay | `pydicom/examples_overlay.dcm`, `pydicom/MR-SIEMENS-DICOM-WithOverlays.dcm`, `weasis-dicom-tools/overlay.dcm` |
 | Hanging protocol | `weasis-dicom-tools/NeurosurgeryPlan.dcm` |
 | File tanpa file meta | `pydicom/rtstruct.dcm` |
+| Charset (Latin, Yunani, Rusia, Arab, Ibrani, UTF-8, GB18030, ISO 2022 Jepang/Korea) | `pydicom/charset/` (daftar di `FileInfo.txt`) |
 
 ## Cakupan transfer syntax
 

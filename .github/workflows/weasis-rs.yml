@@ -11,6 +11,11 @@ on:
       - 'weasis-rs/**'
       - '.github/workflows/weasis-rs.yml'
 
+# A newer push on the same branch makes the running check obsolete.
+concurrency:
+  group: weasis-rs-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

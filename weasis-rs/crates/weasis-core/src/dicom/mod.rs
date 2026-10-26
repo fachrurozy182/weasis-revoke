@@ -1,5 +1,6 @@
 //! Reading and interpreting DICOM objects.
 
+mod charset;
 mod instance;
 mod reader;
 

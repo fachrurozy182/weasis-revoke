@@ -7,13 +7,17 @@
 //! Java reference: `weasis-dicom/weasis-dicom-codec/src/main/java/org/weasis/dicom/codec/DicomMediaIO.java`
 //! (`readMetaData`) and `weasis-dicom-tools/.../org/dcm4che3/img/stream/DicomFileInputStream.java`.
 
+use dicom_core::VR;
 use dicom_dictionary_std::tags;
 use dicom_object::file::ReadPreamble;
-use dicom_object::{DefaultDicomObject, FileMetaTableBuilder, InMemDicomObject, OpenFileOptions};
+use dicom_object::{
+    DefaultDicomObject, FileMetaTableBuilder, InMemDicomObject, OpenFileOptions, Tag,
+};
 use dicom_transfer_syntax_registry::entries::{
     EXPLICIT_VR_LITTLE_ENDIAN, IMPLICIT_VR_LITTLE_ENDIAN,
 };
 
+use super::charset;
 use crate::error::{Error, Result};
 
 /// A parsed DICOM file.
@@ -22,9 +26,32 @@ pub struct DicomFile {
     object: DefaultDicomObject,
     has_pixel_data: bool,
     number_of_frames: u32,
+    /// Values of Specific Character Set (0008,0005), empty when absent.
+    specific_character_set: Vec<String>,
 }
 
 impl DicomFile {
+    /// Text value of an attribute without padding, or `None` when absent, empty or a sequence.
+    ///
+    /// Values using ISO 2022 code extensions (Japanese, Korean, Chinese) are decoded here
+    /// because `dicom-rs` does not support them (see [`charset`]).
+    pub fn text(&self, tag: Tag) -> Option<String> {
+        let element = self.object.element(tag).ok()?;
+        let value = element.to_str().ok()?;
+        let decoded = if charset::needs_code_extension_decoding(&self.specific_character_set) {
+            let first = self
+                .specific_character_set
+                .first()
+                .map_or("", String::as_str);
+            charset::decode_code_extensions(&value, first, element.vr() == VR::PN)
+        } else {
+            value.into_owned()
+        };
+        // Values are padded with a space or NUL to an even length (PS3.5 §6.2).
+        let trimmed = decoded.trim_matches([' ', '\0']);
+        (!trimmed.is_empty()).then(|| trimmed.to_owned())
+    }
+
     /// The parsed data set with its File Meta Information.
     pub fn object(&self) -> &DefaultDicomObject {
         &self.object
@@ -77,10 +104,17 @@ pub fn read_dicom(bytes: &[u8]) -> Result<DicomFile> {
         (true, frames) => frames,
     };
 
+    let specific_character_set = object
+        .element(tags::SPECIFIC_CHARACTER_SET)
+        .ok()
+        .and_then(|element| element.to_multi_str().ok().map(|values| values.to_vec()))
+        .unwrap_or_default();
+
     Ok(DicomFile {
         object,
         has_pixel_data,
         number_of_frames,
+        specific_character_set,
     })
 }
 
