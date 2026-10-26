@@ -11,7 +11,6 @@
 //! (`getDicomPersonName`).
 //
 // TODO(7.6): add the site layer (`attributesView.json`) per modality with the configuration files.
-// TODO(1.15): hide or clear the values of masked attributes (identity masking).
 
 use std::sync::OnceLock;
 
@@ -20,7 +19,7 @@ use dicom_core::dictionary::{DataDictionary, DataDictionaryEntry, VirtualVr};
 use dicom_dictionary_std::{StandardDataDictionary, tags};
 use dicom_object::Tag;
 
-use crate::model::Attributes;
+use crate::model::{Attributes, IdentityMask, MaskedValue};
 
 /// Number of text lines of a corner.
 pub const CORNER_LINES: usize = 7;
@@ -68,14 +67,28 @@ impl TagView {
     /// Text of the line for an image, looking up each attribute in `sources` (e.g. the instance,
     /// series, study and patient attributes); empty when no attribute has a value.
     pub fn text(&self, sources: &[&Attributes]) -> String {
-        self.tags
-            .iter()
-            .find_map(|&tag| {
-                let value = sources.iter().find_map(|attributes| attributes.get(tag))?;
-                let text = format_value(tag, value, self.format.as_deref());
-                (!text.trim().is_empty()).then_some(text)
-            })
-            .unwrap_or_default()
+        self.masked_text(sources, None)
+    }
+
+    /// Text of the line with identity masking: a removed attribute gives way to the next
+    /// candidate, a cleared one empties the line.
+    pub fn masked_text(&self, sources: &[&Attributes], mask: Option<&IdentityMask>) -> String {
+        for &tag in &self.tags {
+            let Some(value) = sources.iter().find_map(|attributes| attributes.get(tag)) else {
+                continue;
+            };
+            let value = match mask.map(|m| m.apply(tag, value)) {
+                None => value.to_owned(),
+                Some(MaskedValue::Show(shown)) => shown,
+                Some(MaskedValue::Clear) => return String::new(),
+                Some(MaskedValue::Remove) => continue,
+            };
+            let text = format_value(tag, &value, self.format.as_deref());
+            if !text.trim().is_empty() {
+                return text;
+            }
+        }
+        String::new()
     }
 }
 
@@ -406,5 +419,30 @@ mod tests {
         assert_eq!(date_line.text(&[&instance, &study]), "Acq.: 2026-01-02");
         assert_eq!(date_line.text(&[&study]), "Acq.: 2026-01-01");
         assert_eq!(date_line.text(&[]), "");
+    }
+
+    #[test]
+    fn masking_removes_or_pseudonymizes_lines() {
+        use crate::model::MaskingModel;
+        let model = MaskingModel::built_in().expect("valid");
+        let publication = IdentityMask::new(
+            &model,
+            model.profile("publication").expect("profile"),
+            b"salt",
+        );
+        let mut patient = Attributes::new();
+        patient.set(tags::PATIENT_ID, "123");
+        let mut study = Attributes::new();
+        study.set(tags::STUDY_DATE, "20260101");
+        let top_left = CornerLayout::built_in().lines(Corner::TopLeft);
+        let id_line = top_left[2].clone().expect("line");
+        let id = id_line.masked_text(&[&patient], Some(&publication));
+        assert!(id.starts_with("ID: ") && !id.contains("123"), "{id}");
+        // Dates are removed by this profile, so the acquisition date line is empty.
+        let date_line = CornerLayout::built_in().lines(Corner::TopRight)[4]
+            .clone()
+            .expect("line");
+        assert_eq!(date_line.masked_text(&[&study], Some(&publication)), "");
+        assert_eq!(date_line.masked_text(&[&study], None), "Acq.: 2026-01-01");
     }
 }

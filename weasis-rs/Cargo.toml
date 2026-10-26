@@ -39,6 +39,9 @@ encoding_rs = "0.8.42"
 # the Java viewer; pure Rust (zlib-rs) so it also runs in the browser.
 zip = { version = "9.1.2", default-features = false, features = ["deflate-flate2-zlib-rs", "aes-crypto"] }
 
+# SHA-256 of the identity masking pseudonyms (pure Rust).
+sha2 = "0.10.9"
+
 # Vectors, matrices and quaternions for patient geometry and MPR, in place of JOML (decision D15).
 glam = "0.34.1"
 

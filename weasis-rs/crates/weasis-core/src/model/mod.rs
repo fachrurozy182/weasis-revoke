@@ -3,6 +3,7 @@
 mod attributes;
 mod hidden;
 mod level;
+mod masking;
 mod patient_identity;
 mod sort;
 mod splitting_rules;
@@ -12,6 +13,10 @@ mod tree;
 pub use attributes::Attributes;
 pub use hidden::HiddenObjects;
 pub use level::Level;
+pub use masking::{
+    AnonymizationAction, IdentityMask, MaskedTag, MaskedValue, MaskingModel, MaskingProfile,
+    TagCategory,
+};
 pub use patient_identity::{NO_VALUE, PatientIdentity};
 pub use sort::{SortKey, slice_position, sort_instances};
 pub use splitting_rules::{Condition, ModalityRules, Rule, RuleKey, SplittingRules};
