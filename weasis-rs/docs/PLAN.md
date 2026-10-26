@@ -185,7 +185,7 @@ perbandingan dengan `testdata/golden/` ditambahkan setelah langkah 0.5 dijalanka
 ### Fase 2 — Kerangka UI & explorer
 - [x] **2.1** Tema dari `Weasis.theme.json`; komponen dasar (tombol, toolbar, dropdown,
   slider, collapsible panel, dialog) meniru FlatLaf.
-- [ ] **2.2** Jendela utama meniru `WeasisWin`: menu (File, View, Display, Tools, Help),
+- [x] **2.2** Jendela utama meniru `WeasisWin`: menu (File, View, Display, Tools, Help),
   toolbar, tab viewer, panel dockable kiri/kanan yang bisa disembunyikan, digeser, di-resize
   (pengganti DockingFrames), status bar (Java tidak punya status bar; yang ada indikator di ujung
   menu bar — lihat PROGRESS 2.2.c).

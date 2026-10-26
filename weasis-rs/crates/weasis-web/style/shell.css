@@ -45,6 +45,57 @@
   min-height: 0;
 }
 
+/* Working area: tab groups split side by side or one above the other. */
+.w-working-area,
+.w-split-part {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.w-split-part {
+  flex-basis: 0;
+}
+
+.w-split {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.w-split-down {
+  flex-direction: column;
+}
+
+.w-split-divider {
+  flex: none;
+  width: 4px;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--ui-separatorColor);
+}
+
+.w-split-down > .w-split-divider {
+  width: auto;
+  height: 4px;
+  cursor: row-resize;
+}
+
+.w-split-divider:hover,
+.w-split-divider:active {
+  background: var(--SplitPaneDivider-draggingColor);
+}
+
+.w-tab-group {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
 /* Viewer tabs: the DockingFrames working area with the Eclipse theme. */
 .w-viewer-tabs {
   display: flex;
@@ -71,6 +122,11 @@
 .w-viewer-tab[aria-selected="true"] {
   color: var(--TabbedPane-selectedForeground);
   border-bottom-color: var(--TabbedPane-underlineColor);
+}
+
+/* Only the group holding the selected viewer underlines its tab with the accent color. */
+.w-tab-group:not(.w-focused) .w-viewer-tab[aria-selected="true"] {
+  border-bottom-color: var(--TabbedPane-disabledUnderlineColor);
 }
 
 .w-viewer-tab-close {

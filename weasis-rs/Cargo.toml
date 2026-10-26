@@ -55,9 +55,9 @@ thiserror = "2.0.21"
 # Frontend (decision D2).
 leptos = { version = "0.8.22", features = ["csr"] }
 console_error_panic_hook = "0.1.7"
-# Browser APIs Leptos does not enable: drag-and-drop data and local storage. Same version as
-# the one Leptos locks.
-web-sys = { version = "0.3.106", features = ["DataTransfer", "Storage"] }
+# Browser APIs Leptos does not enable: drag-and-drop data, element bounds and local storage.
+# Same version as the one Leptos locks.
+web-sys = { version = "0.3.106", features = ["DataTransfer", "DomRect", "Storage"] }
 
 # Backend (decision D5).
 axum = "0.8.9"

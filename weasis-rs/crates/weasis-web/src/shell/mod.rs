@@ -8,7 +8,9 @@ mod masking_indicator;
 mod menu;
 mod menus;
 mod tab_stack;
+mod viewer_menu;
 mod viewers;
+mod working_area;
 
 use leptos::prelude::*;
 
