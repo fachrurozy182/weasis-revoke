@@ -22,8 +22,200 @@
 }
 
 .w-main-area {
+  display: flex;
   min-height: 0;
   background: var(--ui-background);
+}
+
+.w-center {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.w-viewers {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Docked panels: a DockingFrames stack per side with its tabs, minimize and close buttons. */
+.w-dock {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--TabbedPane-background, var(--ui-background));
+}
+
+.w-dock-left {
+  border-right: 1px solid var(--ui-separatorColor);
+}
+
+.w-dock-right {
+  border-left: 1px solid var(--ui-separatorColor);
+}
+
+.w-dock-bottom {
+  border-top: 1px solid var(--ui-separatorColor);
+}
+
+.w-dock-header {
+  display: flex;
+  align-items: stretch;
+  height: var(--TabbedPane-tabHeight, 32px);
+  background: var(--TabbedPane-mt-tab-background);
+}
+
+.w-dock-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.w-dock-tab {
+  font: inherit;
+  color: var(--TabbedPane-foreground);
+  background: transparent;
+  border: none;
+  border-bottom: var(--TabbedPane-tabSelectionHeight, 2px) solid transparent;
+  padding: var(--TabbedPane-tabInsets, 5px 10px);
+  white-space: nowrap;
+}
+
+.w-dock-tab:hover {
+  background: var(--TabbedPane-hoverColor);
+}
+
+.w-dock-tab[aria-selected="true"] {
+  color: var(--TabbedPane-selectedForeground);
+  border-bottom-color: var(--TabbedPane-underlineColor);
+}
+
+.w-dock-button {
+  width: 28px;
+  color: var(--Component-iconColor, var(--ui-foreground));
+  background: transparent;
+  border: none;
+}
+
+.w-dock-button:hover {
+  color: var(--Component-hoverIconColor);
+}
+
+.w-dock-minimize::before {
+  content: "\2013";
+}
+
+.w-dock-close::before {
+  content: "\2715";
+}
+
+.w-dock-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* The splitter lies on the edge facing the viewers. */
+.w-dock-splitter {
+  position: absolute;
+  z-index: 1;
+  touch-action: none;
+}
+
+.w-dock-splitter:hover,
+.w-dock-splitter:active {
+  background: var(--SplitPaneDivider-draggingColor);
+}
+
+.w-dock-left > .w-dock-splitter,
+.w-dock-right > .w-dock-splitter {
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+}
+
+.w-dock-left > .w-dock-splitter {
+  right: -3px;
+}
+
+.w-dock-right > .w-dock-splitter {
+  left: -3px;
+}
+
+.w-dock-bottom > .w-dock-splitter {
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: row-resize;
+}
+
+/* Strips of minimized dockables. */
+.w-dock-strip {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  background: var(--TabbedPane-mt-tab-background);
+}
+
+.w-dock-strip-left,
+.w-dock-strip-right {
+  flex-direction: column;
+  writing-mode: vertical-rl;
+}
+
+.w-dock-strip-left {
+  transform: rotate(180deg);
+}
+
+.w-dock-strip-button {
+  font: inherit;
+  color: var(--TabbedPane-foreground);
+  background: transparent;
+  border: none;
+  border-radius: var(--arc);
+  padding: 6px 4px;
+}
+
+.w-dock-strip-button:hover {
+  background: var(--TabbedPane-hoverColor);
+}
+
+/* Drop targets shown while a tab is dragged. */
+.w-drop-zone {
+  position: absolute;
+  z-index: 2;
+  border: 2px dashed var(--ui-focusedBorderColor);
+  background: color-mix(in srgb, var(--ui-focusedBorderColor) 15%, transparent);
+}
+
+.w-drop-zone-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 25%;
+}
+
+.w-drop-zone-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 25%;
+}
+
+.w-drop-zone-bottom {
+  left: 25%;
+  right: 25%;
+  bottom: 0;
+  height: 25%;
 }
 
 /* Menu bar: JMenuBar with FlatLaf menus. */

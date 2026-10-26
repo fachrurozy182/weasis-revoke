@@ -29,11 +29,16 @@ pub mod action {
     pub const ABOUT: &str = "about";
 }
 
-/// The menus File, View, Tools and Help.
+/// The menus File, View, Tools and Help; `tools` and `explorers` are the check items showing
+/// the dockables.
 ///
 /// NOTE: Exit, Check for Updates and Open the logging folder of the desktop application have no
 /// meaning in a browser tab and are left out.
-pub fn main_menus(anonymize: RwSignal<bool>) -> Vec<Menu> {
+pub fn main_menus(
+    anonymize: RwSignal<bool>,
+    tools: Vec<MenuItem>,
+    explorers: Vec<MenuItem>,
+) -> Vec<Menu> {
     let action = |id, key: &str, accelerator| MenuItem::Action {
         id,
         label: tr(key).to_owned(),
@@ -65,10 +70,13 @@ pub fn main_menus(anonymize: RwSignal<bool>) -> Vec<Menu> {
             label: tr("WeasisWin.display").to_owned(),
             items: vec![
                 submenu("WeasisWin.toolbar"),
-                submenu("WeasisWin.tools"),
+                MenuItem::Submenu {
+                    label: tr("WeasisWin.tools").to_owned(),
+                    items: tools,
+                },
                 MenuItem::Submenu {
                     label: "Explorer".to_owned(),
-                    items: Vec::new(),
+                    items: explorers,
                 },
             ],
         },

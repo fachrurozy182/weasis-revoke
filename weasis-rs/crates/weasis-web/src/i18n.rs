@@ -7,9 +7,11 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 /// English bundles, in lookup order.
-const BUNDLES: [&str; 2] = [
+const BUNDLES: [&str; 4] = [
     include_str!("../../../assets/i18n/base-ui.properties"),
     include_str!("../../../assets/i18n/core.properties"),
+    include_str!("../../../assets/i18n/dicom-explorer.properties"),
+    include_str!("../../../assets/i18n/dicom-viewer2d.properties"),
 ];
 
 /// Text of a key; the key itself when it is missing (like the Java `Messages.getString`, which
