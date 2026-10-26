@@ -22,6 +22,14 @@ pub enum Error {
     #[error("invalid configuration: {0}")]
     Configuration(String),
 
+    /// A ZIP archive cannot be read.
+    #[error("cannot read the ZIP archive: {0}")]
+    Archive(String),
+
+    /// The ZIP archive is encrypted and the password is missing or wrong.
+    #[error("the ZIP archive needs a valid password")]
+    PasswordRequired,
+
     /// The pixel data can only be decoded by the server (decision D14).
     #[error("{0} must be decoded by the server")]
     NeedsServerDecoding(String),

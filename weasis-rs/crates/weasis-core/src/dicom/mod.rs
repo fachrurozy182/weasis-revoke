@@ -1,6 +1,7 @@
 //! Reading and interpreting DICOM objects.
 
 pub mod anatomy;
+mod archive;
 mod charset;
 mod dicomdir;
 mod frames;
@@ -10,6 +11,7 @@ mod object_kind;
 pub mod pixel;
 mod reader;
 
+pub use archive::{ArchiveEntry, DICOMDIR, read_zip, root_dicomdir};
 pub use dicomdir::{DirInstance, DirSeries, read_dicomdir, resolve_file_id};
 pub use frames::compressed_frame;
 pub use functional_groups::{first_item, frame_macro, item_f64, item_text};

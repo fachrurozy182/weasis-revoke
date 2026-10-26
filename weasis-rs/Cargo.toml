@@ -35,6 +35,10 @@ oxideav-jpeg2000 = { version = "0.0.17", default-features = false }
 # Text encodings for ISO 2022 code extensions (pure Rust, works in WebAssembly).
 encoding_rs = "0.8.42"
 
+# DICOM ZIP archives: stored and deflated entries, ZipCrypto and AES passwords, like zip4j in
+# the Java viewer; pure Rust (zlib-rs) so it also runs in the browser.
+zip = { version = "9.1.2", default-features = false, features = ["deflate-flate2-zlib-rs", "aes-crypto"] }
+
 # Vectors, matrices and quaternions for patient geometry and MPR, in place of JOML (decision D15).
 glam = "0.34.1"
 
