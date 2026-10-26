@@ -5,6 +5,7 @@
 mod app;
 mod explorer;
 mod gallery;
+mod help;
 mod i18n;
 mod shell;
 mod shortcuts;

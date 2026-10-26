@@ -60,3 +60,69 @@
   white-space: pre-line;
   max-width: 420px;
 }
+
+/* Dialogs with a list of pages (AbstractItemDialog): pages on the left, the page on the right. */
+.w-item-dialog {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) minmax(360px, 1fr);
+  gap: 12px;
+  min-height: 220px;
+}
+
+.w-item-pages {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--ui-borderColor);
+  border-radius: var(--arc);
+}
+
+.w-item-pages [role="option"] {
+  padding: 3px 8px;
+  border-radius: var(--arc);
+}
+
+.w-item-pages [aria-selected="true"] {
+  color: var(--ui-selectionForeground);
+  background: var(--ui-selectionBackground);
+}
+
+.w-item-page fieldset {
+  margin: 0 0 8px;
+  border: 1px solid var(--ui-borderColor);
+  border-radius: var(--arc);
+}
+
+/* Read-only path field with its browse button (FlatLaf trailing component). */
+.w-file-field {
+  display: flex;
+}
+
+.w-file-field input[type="text"] {
+  flex: 1;
+  font: inherit;
+  color: var(--TextField-foreground, var(--ui-foreground));
+  background: var(--TextField-background, var(--ui-background));
+  border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
+  border-radius: var(--arc) 0 0 var(--arc);
+  padding: 3px 6px;
+}
+
+.w-browse {
+  font: inherit;
+  color: var(--ui-foreground);
+  background: var(--Button-background, var(--ui-background));
+  border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
+  border-left: none;
+  border-radius: 0 var(--arc) var(--arc) 0;
+  padding: 0 8px;
+}
+
+.w-help-link {
+  margin-right: auto;
+  padding: 2px 9px;
+  color: var(--ui-foreground);
+  text-decoration: none;
+  border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
+  border-radius: 50%;
+}

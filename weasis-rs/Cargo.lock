@@ -2840,6 +2840,7 @@ dependencies = [
  "serde",
  "serde_json",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "weasis-core",
  "web-sys",
 ]

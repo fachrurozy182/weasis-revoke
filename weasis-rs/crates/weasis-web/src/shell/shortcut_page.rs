@@ -7,7 +7,7 @@
 
 use weasis_core::gui::{ShortcutEntry, ShortcutManager};
 
-use super::main_window::online_help_url;
+use crate::help::online_help_url;
 use crate::i18n::tr;
 
 const STYLE: &str = include_str!("../../style/shortcut-page.css");

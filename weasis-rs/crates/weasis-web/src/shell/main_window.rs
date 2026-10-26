@@ -12,13 +12,14 @@ use super::menu::{MenuBar, MenuItem};
 use super::menus::{action, main_menus};
 use super::shortcut_page::shortcut_page;
 use super::viewers::{ViewerArea, Viewers};
-use crate::explorer::{DicomExplorer, ImportReport, Importer};
+use crate::explorer::{
+    DicomExplorer, ImportDialog, ImportReport, Importer, carries_files, chosen_files,
+    dropped_entries, files_of,
+};
+use crate::help::online_help_url;
 use crate::i18n::tr;
 use crate::shortcuts::Shortcuts;
 
-/// Online tutorials (`weasis.help.online` of the launcher preferences).
-// TODO(7.6): read `weasis.help.online` from the preferences.
-const ONLINE_HELP_URL: &str = "https://nroduit.github.io/en/tutorials/";
 /// Issue tracker of Weasis.
 const BUG_REPORT_URL: &str = "https://github.com/nroduit/Weasis/issues";
 
@@ -30,6 +31,7 @@ pub fn MainWindow() -> impl IntoView {
     provide_context(importer);
     let docking = Docking::new(dockables(importer));
     let file_input = NodeRef::<leptos::html::Input>::new();
+    let import_dialog = RwSignal::new(false);
     let (tools, explorers) = dockable_menu_items(docking);
     let viewers = Viewers::new();
     provide_context(viewers);
@@ -45,6 +47,7 @@ pub fn MainWindow() -> impl IntoView {
                 input.click();
             }
         }
+        action::IMPORT_DICOM => import_dialog.set(true),
         action::ONLINE_HELP => open_in_new_tab(&online_help_url("")),
         action::SHORTCUTS => open_page(&shortcuts.manager.with(shortcut_page)),
         action::BUG_REPORT => open_in_new_tab(BUG_REPORT_URL),
@@ -59,7 +62,25 @@ pub fn MainWindow() -> impl IntoView {
         other => leptos::logging::log!("menu action not available yet: {other}"),
     });
     view! {
-        <div class="w-main-window" class:w-maximized=move || maximized.get()>
+        <div
+            class="w-main-window"
+            class:w-maximized=move || maximized.get()
+            // Files and folders dropped from the system go to the DICOM explorer, folders read
+            // recursively; tabs dragged inside the window are left to the dock.
+            on:dragover=move |event| {
+                if event.data_transfer().is_some_and(|data| carries_files(&data)) {
+                    event.prevent_default();
+                }
+            }
+            on:drop=move |event| {
+                let Some(data) = event.data_transfer().filter(carries_files) else {
+                    return;
+                };
+                event.prevent_default();
+                let entries = dropped_entries(&data);
+                leptos::task::spawn_local(async move { importer.import(files_of(entries).await) });
+            }
+        >
             <header class="w-main-header">
                 <MenuBar menus=main_menus(anonymize, tools, explorers) on_action=on_action />
                 // TODO(7.2): the capture button (screenshots and recordings of the selected viewer).
@@ -82,6 +103,7 @@ pub fn MainWindow() -> impl IntoView {
             </main>
             <PanelList open=panel_list viewers=viewers docking=docking />
             <ImportReport messages=importer.report />
+            <ImportDialog open=import_dialog importer=importer />
             // File ▸ Open ▸ DICOM: every file can be chosen, DICOM files often have no extension.
             // TODO(2.6): open the series in the default viewer, like `View2dFactory`.
             <input
@@ -91,7 +113,7 @@ pub fn MainWindow() -> impl IntoView {
                 hidden
                 on:change=move |event| {
                     let input: web_sys::HtmlInputElement = event_target(&event);
-                    importer.import(selected_files(&input));
+                    importer.import(chosen_files(&input));
                     input.set_value("");
                 }
             />
@@ -146,14 +168,6 @@ fn dockables(importer: Importer) -> Vec<Dockable> {
     ]
 }
 
-/// Files chosen in a file input.
-fn selected_files(input: &web_sys::HtmlInputElement) -> Vec<web_sys::File> {
-    let Some(list) = input.files() else {
-        return Vec::new();
-    };
-    (0..list.length()).filter_map(|i| list.get(i)).collect()
-}
-
 /// Check items of View ▸ Tools and View ▸ Explorer, checked while their dockable is not closed.
 fn dockable_menu_items(docking: Docking) -> (Vec<MenuItem>, Vec<MenuItem>) {
     let (mut tools, mut explorers) = (Vec::new(), Vec::new());
@@ -181,14 +195,6 @@ fn dockable_menu_items(docking: Docking) -> (Vec<MenuItem>, Vec<MenuItem>) {
         }
     }
     (tools, explorers)
-}
-
-/// Page of the online tutorials about `topic` (the index when empty).
-///
-/// NOTE: the desktop application adds its version (`?v=4.8.0`) for the documentation of that
-/// version; the version of this rewrite does not number Weasis releases, so none is added.
-pub(super) fn online_help_url(topic: &str) -> String {
-    format!("{ONLINE_HELP_URL}{topic}")
 }
 
 /// Opens a generated HTML document in a new tab.

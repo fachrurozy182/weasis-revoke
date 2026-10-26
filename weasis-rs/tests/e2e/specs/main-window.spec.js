@@ -37,7 +37,7 @@ test('the anonymize item is a check box', async ({ page }) => {
 
 test('empty submenus are disabled until explorers fill them', async ({ page }) => {
   await page.getByRole('button', { name: 'File' }).click();
-  await expect(page.getByRole('menuitem', { name: 'Import' })).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByRole('menuitem', { name: 'Export' })).toHaveAttribute('aria-disabled', 'true');
 });
 
 test('anonymizing shows the masking badge and the title suffix', async ({ page }) => {

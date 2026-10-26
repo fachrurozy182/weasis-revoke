@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 2 — Kerangka UI & explorer (Fase 0 & 1 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 2.4.a Import file lokal lewat Worker
-- **Langkah berikutnya:** 2.4.b Import folder & drag and drop
+- **Langkah terakhir selesai:** 2.4.b Import folder & drag and drop
+- **Langkah berikutnya:** 2.4.c DICOMDIR & ZIP
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -110,8 +110,8 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 - [x] **2.3.b** `ShortcutTable`, konversi event keyboard browser, preferensi di browser, halaman Help ▸ Shortcuts
 - [x] **2.3.c** Shortcut docking: maximize/normalize, close, tab berikut/sebelumnya, daftar panel
 - [x] **2.4.a** Import file lokal: worker `import_worker`, File ▸ Open ▸ DICOM, tugas loading, laporan error/tidak didukung
-- [ ] **2.4.b** Folder (input direktori) & drag and drop ke jendela
-- [ ] **2.4.c** DICOMDIR & ZIP (password) di worker; dialog File ▸ Import
+- [x] **2.4.b** Dialog File ▸ Import ▸ DICOM (halaman Local Device: file, folder, rekursif) & drag and drop ke jendela
+- [ ] **2.4.c** DICOMDIR & ZIP (password) di worker; halaman DICOMDIR di dialog Import
 - [ ] **2.3.a** Model shortcut: registry, konteks, `KeyBinding` — `ShortcutManager`, `Shortcut-Management.md`
 - [ ] **2.3.b** Dispatch keyboard & akselerator menu di web
 - [ ] **2.4.a** Pipa impor di Web Worker: file & folder, progress — `LoadLocalDicom`, `LoadingTaskPanel`
@@ -185,3 +185,4 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 | 2026-10-26 | 2.3.a | `weasis_core::gui::{KeyBinding, ShortcutManager, ShortcutContext, ShortcutEntry, id}`: kode tombol & modifier AWT (extended, mask lama dinormalisasi) supaya preferensi sama dengan Java; teks "Ctrl+NumPad +" seperti `getKeyText`; `key_code_from_browser` (huruf/angka ikut layout, lainnya posisi `code`, numpad dibedakan); konteks pohon & konflik; preferensi `<id>.keyCode/.modifier` hanya yang berubah, node per OS, plugin yang mendaftar belakangan ikut preferensi; 77 default dari `registerViewerShortcuts` (modifier menu Cmd/Ctrl). Shortcut fitur ActionW → 3.7 |
 | 2026-10-26 | 2.3.b–c | `weasis_core::gui::ShortcutTable` (id → nilai, yang pertama cocok menang); `weasis-web::shortcuts::{Shortcuts, event_binding}` (registry di context, preferensi node per OS di `localStorage`, deteksi macOS); Help ▸ Shortcuts = halaman HTML `generateHtmlPage` (CSS sama, bagian tetap mouse/preset) dibuka di tab baru lewat Blob URL; shortcut docking di seluruh halaman: Ctrl+M maximize (panel & grup lain disembunyikan), normalize, close, tab berikut/sebelumnya, Ctrl+Shift+E daftar panel (daftar klik, bukan siklus DockingFrames — NOTE); Ctrl+W/N/Tab dipakai browser & externalize tidak ada (NOTE); `MainWindow` dipindah ke `shell/main_window.rs` (mod.rs hanya deklarasi, CODING-GUIDE §2); helper `storage`. Akselerator menu dari registry menunggu item menu yang punya shortcut (3.x). e2e 3 test baru (total 23). **Langkah 2.3 selesai** |
 | 2026-10-26 | 2.4.a | `weasis_core::explorer::{classify, read_file, ImportEvent, ImportedFile}` (DICOM dari ekstensi `dcm/dic/dicm/dicom` atau "DICM" di 128, ZIP dari ekstensi/`PK\3\4`, DICOMDIR & sidecar `.xml` dipisah; DICOMDIR/tidak dikenal = unsupported); serde untuk `NewInstance`/`Attributes` (tag `GGGGEEEE`); bin `import_worker` (Trunk `data-type="worker"`, `filehash = false` agar nama loader tetap) membaca `File` dengan `FileReaderSync` dan mengirim `Ready`/`Read`/`Finished` (JSON); `weasis-web::explorer::{Importer, DicomExplorer, ImportReport}`: satu permintaan per kali, `LoadingTaskPanel` (stop = terminate worker), worker yang mati → sisa file dihitung error, laporan akhir seperti `LoadDicom.done` (opsi "jangan tampilkan lagi" di `localStorage`); daftar pasien sementara (explorer asli di 2.5). Ditemukan e2e: pesan sebelum worker siap hilang → handshake `Ready`; byte bukan DICOM membuat dicom-rs mengalokasikan GB (detik di WASM) → `element_lengths_fit` sebelum parse tanpa preamble + test WASM `malformed_input`. Peringatan reaktif di menu View diperbaiki. e2e 2 test baru (total 25) |
+| 2026-10-26 | 2.4.b | `weasis-web::explorer::{ImportDialog, dropped_files}`: File ▸ Import ▸ DICOM membuka dialog `DicomImport` (daftar halaman kiri, tombol ?/Import/Import and Close/Close) dengan halaman `LocalImport` (field file & folder + "Search recursively" disimpan `last.recursive.mode`); browser tidak memberi path → field menampilkan nama, satu folder per kali (NOTE); folder = input `webkitdirectory`, non-rekursif disaring dari `webkitRelativePath`; file/folder yang di-drop ke jendela → explorer DICOM, folder dibaca rekursif lewat `webkitGetAsEntry` (fallback `getAsFile`), drag tab dock tidak terpengaruh; `help::online_help_url` dipindah ke modul sendiri. e2e 2 test baru (total 27), termasuk laporan "50 file dilewati" + "jangan tampilkan lagi" |

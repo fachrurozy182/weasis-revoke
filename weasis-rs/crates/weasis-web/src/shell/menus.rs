@@ -15,6 +15,8 @@ use crate::i18n::tr;
 pub mod action {
     /// Opens DICOM files.
     pub const OPEN_DICOM: &str = "open-dicom";
+    /// Opens the DICOM import dialog.
+    pub const IMPORT_DICOM: &str = "import-dicom";
     /// Opens the preferences.
     pub const PREFERENCES: &str = "preferences";
     /// Session identity masking switched.
@@ -47,6 +49,11 @@ pub fn main_menus(
         accelerator,
     };
     let open = vec![action(action::OPEN_DICOM, "OpenDicomAction.title", None)];
+    let import = vec![action(
+        action::IMPORT_DICOM,
+        "DicomExplorer.btn_title",
+        None,
+    )];
     let submenu = |key: &str| MenuItem::Submenu {
         label: tr(key).to_owned(),
         items: Vec::new(),
@@ -59,7 +66,10 @@ pub fn main_menus(
                     label: tr("WeasisWin.open").to_owned(),
                     items: open,
                 },
-                submenu("WeasisWin.import"),
+                MenuItem::Submenu {
+                    label: tr("WeasisWin.import").to_owned(),
+                    items: import,
+                },
                 submenu("WeasisWin.export"),
                 submenu("launcher"),
                 MenuItem::Separator,
