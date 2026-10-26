@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 1 — Inti DICOM (Fase 0 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 1.4.a Modality LUT & pixel padding
-- **Langkah berikutnya:** 1.4.b VOI (W/L linear/sigmoid, VOI LUT, invert, MONOCHROME1)
+- **Langkah terakhir selesai:** 1.4 Modality LUT & VOI
+- **Langkah berikutnya:** 1.5.a Preset W/L dari `windowPresets.json`
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -72,7 +72,7 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 - [x] **1.3.c** Fotometri: MONOCHROME1/2, RGB, YBR_FULL(_422), palette color, planar configuration — `PaletteColorUtils`, `ImageConversion`
 - [x] **1.3.d** Pindahkan `tests/codec_support.rs` ke modul codec
 - [x] **1.4.a** Modality LUT (rescale slope/intercept, Modality LUT Sequence), pixel padding — `ModalityLutModule`, `RescaleUtils`
-- [ ] **1.4.b** VOI: W/L linear, linear exact, sigmoid; VOI LUT Sequence; invert; MONOCHROME1 — `VoiLutModule`, `LutShape`, `WlParams`, `ImageRendering`
+- [x] **1.4.b** VOI: W/L linear, linear exact, sigmoid; VOI LUT Sequence; invert; MONOCHROME1 — `VoiLutModule`, `LutShape`, `WlParams`, `ImageRendering`
 - [ ] **1.5.a** Parse `windowPresets.json` + pilih preset per modalitas/anatomi — `WindowPresetRegistry`, `WindowPreset`, `Window-Presets.md`
 - [ ] **1.6.a** Parse `colormaps.json` + sampling color map — `ColorMapRegistry`, `ColorMapCompiler`, `ColorMap-Design.md`
 - [ ] **1.7.a** Urutan stack — `SortSeriesStack`
@@ -118,3 +118,4 @@ Sub-langkah boleh dipecah lagi bila saat dikerjakan ternyata besar.
 | 2026-10-26 | 1.3.c | `pixel::to_rgb`: planar→interleaved, YBR_FULL/422→RGB, palette (normal & tersegmentasi, 8-bit seperti Java); temuan: RLE dari dicom-pixeldata sudah interleaved, YBR_FULL_422 native & SEG 1-bit terenkapsulasi dibaca sendiri |
 | 2026-10-26 | 1.3.d | `tests/codec_support.rs` kini memanggil `decode_frame` + `to_rgb`, lulus native & WASM |
 | 2026-10-26 | 1.4.a | `image::{ModalityLut, LookupTable}`, `dicom::frame_macro` (functional groups); hasil = pydicom `apply_modality_lut`; padding US-sebagai-signed ditafsir ulang |
+| 2026-10-26 | 1.4.b | `image::{VoiLut, VoiParams, LutShape, render_gray}`: 7 bentuk LUT (rumus Java `LookupTableUtils`), Frame VOI LUT per frame, tabel per nilai stored; cocok dengan pydicom `apply_windowing`/`apply_voi_lut` |
