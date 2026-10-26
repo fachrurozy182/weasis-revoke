@@ -1,5 +1,6 @@
 //! Reading and interpreting DICOM objects.
 
+pub mod anatomy;
 mod charset;
 mod frames;
 mod functional_groups;

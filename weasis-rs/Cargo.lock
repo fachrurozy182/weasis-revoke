@@ -2624,6 +2624,8 @@ dependencies = [
  "oxiarc-jpeg",
  "oxideav-jpeg2000",
  "pure_jpegls",
+ "serde",
+ "serde_json",
  "thiserror 2.0.21",
  "wasm-bindgen-test",
 ]
