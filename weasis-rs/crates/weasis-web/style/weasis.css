@@ -1,0 +1,64 @@
+/*
+ * Base look of Weasis web, after the FlatLaf look and feel of the desktop application.
+ *
+ * Colors and component metrics come from the variables of the theme (`src/theme.rs`), which
+ * the application declares on :root at startup. Font sizes follow FlatLaf and the Weasis
+ * `FlatLaf.properties`: the default font, then small (-2), mini (-3) and micro (-4).
+ *
+ * Java reference: weasis-launcher/src/main/resources/org/weasis/theme/FlatLaf.properties
+ */
+
+:root {
+  --font-family: "Segoe UI", system-ui, -apple-system, "Noto Sans", sans-serif;
+  --font-size: 13px;
+  --font-size-small: 11px;
+  --font-size-mini: 10px;
+  --font-size-micro: 9px;
+  /* FlatLaf defaults when the theme does not set them. */
+  --arc: var(--Component-arc, 6px);
+  --button-arc: var(--Button-arc, 8px);
+  --focus-width: var(--Component-focusWidth, 2px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--ui-background);
+  color: var(--ui-foreground);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  /* The desktop application never selects interface text. */
+  user-select: none;
+}
+
+.small {
+  font-size: var(--font-size-small);
+}
+
+.mini {
+  font-size: var(--font-size-mini);
+}
+
+.micro {
+  font-size: var(--font-size-micro);
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--ui-focusedBorderColor);
+  outline-offset: 0;
+}
+
+::selection {
+  background: var(--ui-selectionBackground);
+  color: var(--ui-selectionForeground);
+}
