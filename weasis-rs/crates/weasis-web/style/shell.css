@@ -1,0 +1,110 @@
+/*
+ * Main window (src/shell): menu bar, toolbars, docked panels, viewer tabs, status bar.
+ * Java reference: weasis-base/weasis-base-ui/.../gui/WeasisWin.java with the FlatLaf menus.
+ */
+
+.w-main-window {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.w-main-header {
+  background: var(--MenuBar-background);
+  border-bottom: 1px solid var(--MenuBar-borderColor);
+}
+
+.w-toolbars {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--ToolBar-background);
+}
+
+.w-main-area {
+  min-height: 0;
+  background: var(--ui-background);
+}
+
+/* Menu bar: JMenuBar with FlatLaf menus. */
+.w-menubar {
+  /* Above the click-outside backdrop, so that hovering another title switches menus. */
+  position: relative;
+  z-index: 11;
+  display: flex;
+  margin: 0;
+  padding: 2px 4px;
+  list-style: none;
+}
+
+.w-menubar-entry {
+  position: relative;
+}
+
+.w-menubar-title {
+  font: inherit;
+  color: var(--MenuBar-foreground);
+  background: transparent;
+  border: none;
+  border-radius: var(--arc);
+  padding: 4px 8px;
+}
+
+.w-menubar-title:hover,
+.w-menubar-entry.w-open > .w-menubar-title {
+  color: var(--MenuBar-selectionForeground);
+  background: var(--MenuBar-selectionBackground);
+}
+
+.w-menubar .w-menu {
+  min-width: 220px;
+}
+
+.w-menu-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.w-menu-item[aria-disabled="true"] {
+  color: var(--MenuItem-disabledForeground);
+  pointer-events: none;
+}
+
+.w-accelerator {
+  color: var(--MenuItem-acceleratorForeground);
+}
+
+.w-menu-item:hover .w-accelerator {
+  color: var(--MenuItem-acceleratorSelectionForeground);
+}
+
+.w-check-item[aria-checked="true"]::before {
+  content: "✓";
+  position: absolute;
+  left: 9px;
+}
+
+.w-menu-separator {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--Menu-separatorColor, var(--ui-separatorColor));
+}
+
+/* Submenus open to the right on hover. */
+.w-submenu > .w-menu {
+  display: none;
+  top: -7px;
+  left: 100%;
+  margin: 0 0 0 2px;
+}
+
+.w-submenu:hover > .w-menu {
+  display: block;
+}
+
+.w-submenu-arrow {
+  align-self: center;
+  border: 4px solid transparent;
+  border-left-color: currentColor;
+}

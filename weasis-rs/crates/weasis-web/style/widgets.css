@@ -123,7 +123,7 @@
   background: var(--MenuItem-selectionBackground);
 }
 
-.w-menu-item[aria-checked="true"]::before {
+.w-menu-item[role="menuitemradio"][aria-checked="true"]::before {
   content: "";
   position: absolute;
   left: 10px;

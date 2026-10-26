@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 2 — Kerangka UI & explorer (Fase 0 & 1 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 2.1.b Komponen dasar & harness e2e
-- **Langkah berikutnya:** 2.2.a Jendela utama & menu
+- **Langkah terakhir selesai:** 2.2.a Jendela utama & menu
+- **Langkah berikutnya:** 2.2.b Panel dockable
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -102,7 +102,7 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 
 - [x] **2.1.a** Tema: `Weasis.theme.json` (format IntelliJ/FlatLaf) → variabel CSS, font & metrik FlatLaf — `FlatWeasisTheme`, `FlatLaf.properties`
 - [x] **2.1.b** Komponen dasar: tombol, toggle, toolbar, dropdown, slider, panel collapsible, dialog + harness e2e
-- [ ] **2.2.a** Jendela utama: menu bar (File, View, Display, Tools, Help) & tata letak — `WeasisWin`
+- [x] **2.2.a** Jendela utama: menu bar (File, View, Display, Tools, Help) & tata letak — `WeasisWin`
 - [ ] **2.2.b** Panel dockable kiri/kanan/bawah: sembunyi, geser, resize, tab (pengganti DockingFrames)
 - [ ] **2.2.c** Tab viewer & status bar
 - [ ] **2.3.a** Model shortcut: registry, konteks, `KeyBinding` — `ShortcutManager`, `Shortcut-Management.md`
@@ -171,3 +171,4 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 | 2026-10-26 | 1.15.b | `image::{PixelPrivacy, RedactionMask, RedactionShape}` + `model::{PixelMask, DeviceKey, MaskRegion, best_pixel_mask}` (blok `masks` di dokumen masking): mask gambar > seri > pustaka perangkat (region yang kategorinya disimpan profil tidak dibakar), isi region = median cincin 4 piksel dengan kernel elips 9×9 OpenCV; konversi Karnak → 7.6. **Fase 1 selesai** |
 | 2026-10-26 | 2.1.a | `weasis-web::theme::Theme`: `Weasis.theme.json` (IntelliJ/FlatLaf, dipakai ulang di `assets/config/`) → 1300+ variabel CSS (`--color-*`, `--ui-*` dari `*`, `--Komponen-kunci`, insets → padding CSS); `style/weasis.css` (font FlatLaf, metrik); dicek di Chromium: latar `#2D2A2E`, teks `#FCFCFA` |
 | 2026-10-26 | 2.1.b | `weasis-web::widgets::{Button, ToggleButton, Toolbar, DropDownButton, Slider, CollapsiblePanel, Dialog}` + `style/widgets.css` (meniru `JButton`/FlatLaf, `WtoolBar`, `DropDownButton`, `JSliderW`, `CollapsiblePanel`); halaman `#gallery`; harness e2e `tests/e2e` (Playwright 1.63.0) 5 test lulus + screenshot; e2e ditambahkan ke CI |
+| 2026-10-26 | 2.2.a | `weasis-web::shell::{MainWindow, MenuBar}` + `menus.rs`: menu File/View/Tools/Help dari `WeasisWin` (klik membuka, hover berpindah, Escape/klik luar menutup, submenu hover, item centang Anonymize); `i18n::tr` membaca `messages.properties` Java (base-ui, core) — bahasa lain di 2.9; Exit/cek update/folder log tidak ada di web (NOTE); e2e 4 test + screenshot. Bug backdrop menutupi menu bar ditemukan e2e & diperbaiki |
