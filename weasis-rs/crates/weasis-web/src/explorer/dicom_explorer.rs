@@ -7,8 +7,10 @@
 
 use dicom_dictionary_std::tags;
 use leptos::prelude::*;
+use std::collections::HashMap;
 use weasis_core::dicom::ObjectKind;
-use weasis_core::explorer::SeriesSelection;
+
+use weasis_core::explorer::{SeriesFilter, SeriesSelection};
 use weasis_core::gui::{ShortcutTable, id};
 use weasis_core::model::{
     DicomModel, SeriesNode, SortingTime, StudyNode, compare_patients, compare_series,
@@ -17,6 +19,7 @@ use weasis_core::model::{
 
 use super::Importer;
 use super::loading_task::LoadingTaskPanel;
+use super::series_filter_bar::SeriesFilterBar;
 use super::series_menu::{SeriesMenu, SeriesMenuAt};
 use super::thumbnails::Thumbnails;
 use crate::i18n::tr;
@@ -65,7 +68,28 @@ pub fn DicomExplorer(importer: Importer) -> impl IntoView {
             patient.set(first.value.clone());
         }
     });
-    let studies = Memo::new(move |_| model.with(|m| sorted_studies(m, &patient.get())));
+    // Studies with all their shown series, then with those passing the filter of the patient.
+    let all_studies = Memo::new(move |_| model.with(|m| sorted_studies(m, &patient.get())));
+    let filter = RwSignal::new(SeriesFilter::default());
+    let filters = StoredValue::new(HashMap::<String, SeriesFilter>::new());
+    // Each patient keeps its own filter (`filtersByPatient`).
+    Effect::new(move |previous: Option<String>| {
+        let current = patient.get();
+        if let Some(previous) = previous {
+            filters.update_value(|f| _ = f.insert(previous, filter.get_untracked()));
+        }
+        filter.set(
+            filters
+                .with_value(|f| f.get(&current).cloned())
+                .unwrap_or_default(),
+        );
+        current
+    });
+    let studies = Memo::new(move |_| filter.with(|f| all_studies.with(|s| filtered(s, f))));
+    let counts = Signal::derive(move || {
+        let count = |studies: &[StudyNode]| studies.iter().map(|s| s.series.len()).sum::<usize>();
+        (studies.with(|s| count(s)), all_studies.with(|s| count(s)))
+    });
     let shown = Memo::new(move |_| {
         studies.with(|s| {
             s.iter()
@@ -79,8 +103,12 @@ pub fn DicomExplorer(importer: Importer) -> impl IntoView {
         menu: RwSignal::new(None),
         thumbnails: importer.thumbnails,
     };
-    // Removed or hidden series leave the selection.
+    // Removed or hidden series leave the selection; a new filter clears it.
     Effect::new(move |_| shown.with(|s| state.selection.update(|sel| sel.retain_shown(s))));
+    Effect::new(move |_| {
+        filter.track();
+        state.selection.update(SeriesSelection::clear);
+    });
     let on_key = selection_keys(state);
     view! {
         <div class="w-dicom-explorer">
@@ -93,6 +121,7 @@ pub fn DicomExplorer(importer: Importer) -> impl IntoView {
                 label=tr("DicomExplorer.search_patient")
                 placeholder=tr("DicomExplorer.search_patient")
             />
+            <SeriesFilterBar filter=filter studies=Signal::from(all_studies) counts=counts />
             <div
                 class="w-patient-pane"
                 tabindex="0"
@@ -260,6 +289,25 @@ fn kind_label(kind: ObjectKind) -> &'static str {
         ObjectKind::Audio => tr("Thumbnail.audio"),
         _ => tr("Thumbnail.img"),
     }
+}
+
+/// The studies with only the series passing the filter; studies left empty are left out.
+fn filtered(studies: &[StudyNode], filter: &SeriesFilter) -> Vec<StudyNode> {
+    studies
+        .iter()
+        .filter_map(|study| {
+            let series = study
+                .series
+                .iter()
+                .filter(|s| filter.test(s, study))
+                .cloned()
+                .collect::<Vec<_>>();
+            (!series.is_empty()).then(|| StudyNode {
+                series,
+                ..study.clone()
+            })
+        })
+        .collect()
 }
 
 fn study_key(study: &StudyNode) -> (String, Vec<String>) {

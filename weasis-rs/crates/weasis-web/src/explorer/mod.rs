@@ -9,7 +9,9 @@ mod import_prompts;
 mod import_report;
 mod importer;
 mod loading_task;
+mod series_filter_bar;
 mod series_menu;
+mod series_processing;
 mod thumbnails;
 
 pub use dicom_explorer::DicomExplorer;

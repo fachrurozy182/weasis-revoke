@@ -6,15 +6,13 @@
 //! `LoadDicom.java` (counting errors and unsupported files, `done`), `imp/DicomDirImport.java`
 //! and `imp/DicomZipMediaIO.java`.
 
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 use js_sys::{Array, Uint8Array};
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
-use weasis_core::explorer::{
-    ImportEvent, ImportRequest, ImportedFile, MediaPosition, THUMBNAIL_MAX_SIZE,
-};
+use weasis_core::explorer::{ImportEvent, ImportRequest, ImportedFile, THUMBNAIL_MAX_SIZE};
 use weasis_core::model::{DicomModel, SplittingRules};
 use web_sys::{ErrorEvent, File, MessageEvent, Worker};
 
@@ -42,7 +40,7 @@ enum JobKind {
 }
 
 /// Files of a request and what was found so far.
-struct Job {
+pub(super) struct Job {
     kind: JobKind,
     request: ImportRequest,
     files: Vec<File>,
@@ -68,11 +66,13 @@ pub struct Importer {
     /// Thumbnails of the series.
     pub thumbnails: Thumbnails,
     // The running job is the first one; only it was sent to the worker.
-    jobs: StoredValue<VecDeque<Job>, LocalStorage>,
+    pub(super) jobs: StoredValue<VecDeque<Job>, LocalStorage>,
     worker: StoredValue<Option<Worker>, LocalStorage>,
     // The worker said it is ready: requests sent before would be lost.
     worker_ready: StoredValue<bool>,
     next_task: StoredValue<u32>,
+    // Series whose phases were looked at once loaded (`LoadLocalDicom.seriesPostProcessing`).
+    pub(super) post_processed: StoredValue<HashSet<String>>,
 }
 
 impl Importer {
@@ -88,6 +88,7 @@ impl Importer {
             jobs: StoredValue::new_local(VecDeque::new()),
             worker: StoredValue::new_local(None),
             worker_ready: StoredValue::new(false),
+            post_processed: StoredValue::new(HashSet::new()),
             next_task: StoredValue::new(1),
         }
     }
@@ -128,23 +129,7 @@ impl Importer {
         }
     }
 
-    /// Renders again the thumbnail of a series, from the image at `position`.
-    pub fn rebuild_thumbnail(&self, series: &str, position: MediaPosition) {
-        let request = self.model.with_untracked(|m| {
-            m.series(series)
-                .and_then(|s| self.thumbnails.request_for(s, position))
-        });
-        let Some(request) = request else {
-            return;
-        };
-        let idle = self.jobs.with_value(VecDeque::is_empty);
-        self.request_thumbnail(request);
-        if idle {
-            self.send_next();
-        }
-    }
-
-    fn request_thumbnail(&self, thumbnail: ThumbnailRequest) {
+    pub(super) fn request_thumbnail(&self, thumbnail: ThumbnailRequest) {
         let request = ImportRequest::Thumbnail {
             entry: thumbnail.source.entry,
             password: thumbnail.source.password,
@@ -190,7 +175,7 @@ impl Importer {
         }
     }
 
-    fn send_next(&self) {
+    pub(super) fn send_next(&self) {
         let message = self.jobs.with_value(|jobs| {
             let job = jobs.front()?;
             let request = serde_json::to_string(&job.request).ok()?;
@@ -353,10 +338,8 @@ impl Importer {
                 report.push_back(ReportMessage::Unsupported(job.unsupported));
             }
         });
-        let thumbnails = self.model.with_untracked(|m| self.thumbnails.missing(m));
-        thumbnails
-            .into_iter()
-            .for_each(|t| self.request_thumbnail(t));
+        self.separate_new_phases();
+        self.queue_missing_thumbnails();
         self.send_next();
     }
 }

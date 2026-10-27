@@ -110,3 +110,28 @@ test('the thumbnail is rebuilt from another image', async ({ page }) => {
   // The first slice of the sphere phantom differs from the middle one.
   await expect(image).not.toHaveAttribute('src', middle);
 });
+
+test('the series filter acts on text, study or modality', async ({ page }) => {
+  const field = page.locator('.w-filter-field');
+  await field.fill('gradient');
+  await expect(series(page).locator('.w-series-label')).toHaveText(['CR MONOCHROME1 gradient']);
+  await expect(page.locator('.w-filter-status')).toHaveText('1/4 series shown');
+  // Text found in no series nor study hides every series.
+  await field.fill('nothing like this');
+  await expect(series(page)).toHaveCount(0);
+  await field.fill('');
+  await expect(series(page)).toHaveCount(4);
+  await expect(page.locator('.w-filter-status')).toHaveCount(0);
+
+  await page.locator('.w-filter-mode button').click();
+  await page.getByRole('menuitemradio', { name: 'Modality' }).click();
+  await page.locator('.w-filter-field').fill('us, cr');
+  await expect(series(page).locator('.w-series-label')).toHaveText(['CR MONOCHROME1 gradient', 'US regions']);
+  await page.screenshot({ path: 'test-results/series-filter.png' });
+
+  await page.locator('.w-filter-mode button').click();
+  await page.getByRole('menuitemradio', { name: 'Study date' }).click();
+  await expect(series(page)).toHaveCount(4, { message: 'a new mode starts empty' });
+  const studies = page.locator('select.w-filter-field option');
+  await expect(studies).toHaveText(['All Studies', '2026-01-01']);
+});

@@ -5,6 +5,7 @@
 mod archive_import;
 mod local_import;
 mod related_series;
+mod series_filter;
 mod series_selection;
 mod thumbnail;
 
@@ -14,5 +15,6 @@ pub use local_import::{
     read_file,
 };
 pub use related_series::related_series;
+pub use series_filter::{FilterMode, SeriesFilter};
 pub use series_selection::SeriesSelection;
 pub use thumbnail::{MediaPosition, THUMBNAIL_MAX_SIZE, render_thumbnail, thumbnail_source};

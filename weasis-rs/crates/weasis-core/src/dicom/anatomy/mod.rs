@@ -62,7 +62,8 @@ pub enum RegionGroup {
 }
 
 impl RegionGroup {
-    const ALL: [(Self, &'static str); 11] = [
+    /// Every group with its name in `regionGroups.json`.
+    pub const NAMES: [(Self, &'static str); 11] = [
         (Self::Head, "HEAD"),
         (Self::Neck, "NECK"),
         (Self::Chest, "CHEST"),
@@ -79,7 +80,7 @@ impl RegionGroup {
     /// Group of a name such as `CHEST` (case-insensitive).
     pub fn from_name(name: &str) -> Option<Self> {
         let name = name.trim().to_uppercase();
-        Self::ALL
+        Self::NAMES
             .iter()
             .find(|(_, n)| *n == name)
             .map(|(group, _)| *group)

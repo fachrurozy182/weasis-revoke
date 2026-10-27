@@ -62,14 +62,14 @@ impl DicomModel {
         }
     }
 
-    fn next_part(&self, series_uid: &str) -> u32 {
+    pub(super) fn next_part(&self, series_uid: &str) -> u32 {
         (1..)
             .find(|&part| self.series(&part_key(part, series_uid)).is_none())
             .unwrap_or(1)
     }
 }
 
-fn part_key(part: u32, series_uid: &str) -> String {
+pub(super) fn part_key(part: u32, series_uid: &str) -> String {
     format!("#{part}.{series_uid}")
 }
 

@@ -234,3 +234,34 @@
   top: 2px;
   right: 3px;
 }
+
+/* Series filter: the mode menu inside the field; an accent border and the count while active. */
+.w-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid transparent;
+  border-radius: var(--arc);
+}
+
+.w-filter-bar.w-active {
+  border-color: var(--Component-accentColor, var(--ui-focusedBorderColor));
+}
+
+.w-filter-field {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--TextField-foreground, var(--ui-foreground));
+  background: var(--TextField-background, var(--ui-background));
+  border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
+  border-radius: var(--arc);
+  padding: 3px 6px;
+}
+
+.w-filter-status {
+  padding: 0 4px;
+  color: var(--Component-accentColor, var(--ui-focusedBorderColor));
+}

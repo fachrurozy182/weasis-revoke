@@ -1,9 +1,11 @@
 //! Context menu of a series in the explorer: select the related series, remove the selected
-//! series, or the study or patient of a single selected series, rebuild its thumbnail.
+//! series, or the study or patient of a single selected series, merge the parts of a split
+//! series, separate the phases of a 4D series, rebuild a thumbnail.
 //!
 //! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/main/ThumbnailMouseAndKeyAdapter.java`
 //! (`showContextMenu`).
 
+use dicom_dictionary_std::tags;
 use leptos::prelude::*;
 use weasis_core::explorer::MediaPosition;
 use weasis_core::explorer::{SeriesSelection, related_series};
@@ -25,7 +27,7 @@ pub struct SeriesMenuAt {
 }
 
 /// The menu, shown while `at` is set.
-// TODO(2.5.d, 2.6, 2.7): merge and phases, open and add, DICOM information.
+// TODO(2.6, 2.7): open and add to a viewer, DICOM information.
 #[component]
 pub fn SeriesMenu(
     importer: Importer,
@@ -41,6 +43,15 @@ pub fn SeriesMenu(
             let several_images = model.with_untracked(|m| {
                 m.series(&series).is_some_and(|s| image_count(s) > 1)
             });
+            let selected = selection.with_untracked(|s| s.selected().to_vec());
+            // Parts of one split series can be merged back (`addMergeMenuItem`).
+            let can_merge = model.with_untracked(|m| {
+                let uid = |key: &String| m.series(key).and_then(|s| s.attributes.get(tags::SERIES_INSTANCE_UID).map(str::to_owned));
+                let is_part = m.series(&series).is_some_and(|s| s.split_number.is_some());
+                let first = selected.first().and_then(uid);
+                is_part && selected.len() > 1 && first.is_some() && selected.iter().all(|k| uid(k) == first)
+            });
+            let multi_phase = single && several_images && model.with_untracked(|m| m.phase_count(&series) > 1);
             let item = |key: &'static str, action: Box<dyn Fn() + Send + Sync>| {
                 view! {
                     <li role="menuitem" class="w-menu-item" on:click=move |_| {
@@ -103,10 +114,27 @@ pub fn SeriesMenu(
                         {item("DicomExplorer.sel_rel_series_axis", related(true))}
                         <li role="separator" class="w-menu-separator"></li>
                     })}
+                    {can_merge.then(|| {
+                        let selected = selected.clone();
+                        view! {
+                            {item("DicomExplorer.merge", Box::new(move || {
+                                model.update(|m| _ = m.merge_series(&selected));
+                                selection.update(SeriesSelection::clear);
+                            }))}
+                            <li role="separator" class="w-menu-separator"></li>
+                        }
+                    })}
                     {item("DicomExplorer.rem_series", remove_series)}
                     {single.then(|| view! {
                         {item("DicomExplorer.rem_study", remove_study)}
                         {item("DicomExplorer.rem_pat", remove_patient)}
+                    })}
+                    {multi_phase.then(|| {
+                        let series = series.clone();
+                        view! {
+                            <li role="separator" class="w-menu-separator"></li>
+                            {item("separate.phases", Box::new(move || importer.separate_phases(&series)))}
+                        }
                     })}
                     {(single && several_images).then(|| {
                         let rebuild = |key: &'static str, position: MediaPosition| {

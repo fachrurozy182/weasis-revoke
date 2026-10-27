@@ -7,6 +7,7 @@ mod level;
 mod masking;
 mod node_label;
 mod patient_identity;
+mod phases;
 mod sort;
 mod splitting_rules;
 mod sub_series;

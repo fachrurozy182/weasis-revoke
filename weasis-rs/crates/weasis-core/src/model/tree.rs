@@ -199,6 +199,13 @@ impl DicomModel {
             .find(|p| p.studies.iter().any(|s| s.uid == uid))
     }
 
+    pub(super) fn study_of_series_mut(&mut self, key: &str) -> Option<&mut StudyNode> {
+        self.patients
+            .iter_mut()
+            .flat_map(|p| &mut p.studies)
+            .find(|s| s.series.iter().any(|series| series.key == key))
+    }
+
     pub(super) fn series_mut(&mut self, key: &str) -> Option<&mut SeriesNode> {
         self.patients
             .iter_mut()
