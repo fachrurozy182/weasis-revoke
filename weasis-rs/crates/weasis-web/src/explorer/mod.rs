@@ -10,6 +10,7 @@ mod import_report;
 mod importer;
 mod loading_task;
 mod series_menu;
+mod thumbnails;
 
 pub use dicom_explorer::DicomExplorer;
 pub use dropped_files::{carries_files, dropped_entries, files_of};

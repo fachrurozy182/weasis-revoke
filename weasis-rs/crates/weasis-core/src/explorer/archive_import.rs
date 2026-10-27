@@ -27,6 +27,19 @@ pub fn dicomdir_files(dicomdir: &[u8], files: &[String]) -> Result<Vec<String>> 
     Ok(paths)
 }
 
+/// The bytes of an instance stored in a ZIP archive, through the nested archives of `entry`.
+pub fn archive_entry(bytes: &[u8], entry: &[String], password: Option<&[u8]>) -> Result<Vec<u8>> {
+    let Some((first, rest)) = entry.split_first() else {
+        return Ok(bytes.to_vec());
+    };
+    let content = read_zip(bytes, password)?
+        .into_iter()
+        .find(|e| &e.path == first)
+        .map(|e| e.bytes)
+        .ok_or_else(|| Error::Archive(format!("no entry {first}")))?;
+    archive_entry(&content, rest, password)
+}
+
 /// Files of a folder to read through its DICOMDIR, as indexes into `paths` (path of each file in
 /// the folder): the files referenced by the shallowest DICOMDIR, whose bytes `read` gives.
 /// `None` when there is no readable DICOMDIR or it references none of the files.
@@ -100,7 +113,12 @@ pub fn read_archive(
             FileKind::Zip => read_archive(file, &entry_name, &entry.bytes, password),
             FileKind::Dicomdir | FileKind::Sidecar | FileKind::Other => continue,
         };
-        imported.instances.extend(read.instances);
+        imported
+            .instances
+            .extend(read.instances.into_iter().map(|mut read| {
+                read.entry.insert(0, entry.path.clone());
+                read
+            }));
         imported.unsupported += read.unsupported;
         imported.errors.extend(read.errors);
         imported.password_required |= read.password_required;
@@ -188,6 +206,10 @@ mod tests {
         assert!(read_archive(0, "a.zip", &bytes, Some(b"wrong")).password_required);
         let read = read_archive(0, "a.zip", &bytes, Some(b"secret"));
         assert_eq!((read.instances.len(), read.password_required), (1, false));
+        let entry = &read.instances[0].entry;
+        assert_eq!(entry, &["nested.zip", "inner/ct.dcm"]);
+        let content = archive_entry(&bytes, entry, Some(b"secret")).expect("found");
+        assert_eq!(content, test_file("pydicom/CT_small.dcm"));
     }
 
     #[test]

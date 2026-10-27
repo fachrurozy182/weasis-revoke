@@ -6,10 +6,13 @@ mod archive_import;
 mod local_import;
 mod related_series;
 mod series_selection;
+mod thumbnail;
 
-pub use archive_import::{dicomdir_files, dicomdir_selection, read_archive};
+pub use archive_import::{archive_entry, dicomdir_files, dicomdir_selection, read_archive};
 pub use local_import::{
-    FileKind, HEAD_LENGTH, ImportEvent, ImportRequest, ImportedFile, classify, read_file,
+    FileKind, HEAD_LENGTH, ImportEvent, ImportRequest, ImportedFile, ImportedInstance, classify,
+    read_file,
 };
 pub use related_series::related_series;
 pub use series_selection::SeriesSelection;
+pub use thumbnail::{MediaPosition, THUMBNAIL_MAX_SIZE, render_thumbnail, thumbnail_source};

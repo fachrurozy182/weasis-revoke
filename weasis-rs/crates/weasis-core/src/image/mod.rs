@@ -3,6 +3,7 @@
 mod color_map;
 mod color_space;
 mod corner_info;
+mod default_view;
 mod lookup_table;
 mod modality;
 mod overlay;
@@ -24,6 +25,7 @@ pub use color_map::{
 };
 pub use color_space::{ColorSpace, Rgba};
 pub use corner_info::{CORNER_LINES, Corner, CornerLayout, TagView, format_value};
+pub use default_view::{RgbaImage, fit_within, render_default};
 pub use lookup_table::LookupTable;
 pub use modality::{ModalityLut, ModalityTransform};
 pub use overlay::{

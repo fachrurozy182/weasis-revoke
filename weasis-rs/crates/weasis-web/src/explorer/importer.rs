@@ -1,5 +1,6 @@
 //! Imports local files into the model: the files go to the import worker one request at a time,
-//! each request showing as a loading task until the worker has read all its files.
+//! each request showing as a loading task until the worker has read all its files. Once an
+//! import ends, the worker renders the thumbnails of the new series, one request each.
 //!
 //! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/LoadLocalDicom.java`,
 //! `LoadDicom.java` (counting errors and unsupported files, `done`), `imp/DicomDirImport.java`
@@ -7,15 +8,18 @@
 
 use std::collections::VecDeque;
 
-use js_sys::Array;
+use js_sys::{Array, Uint8Array};
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
-use weasis_core::explorer::{ImportEvent, ImportRequest, ImportedFile};
+use weasis_core::explorer::{
+    ImportEvent, ImportRequest, ImportedFile, MediaPosition, THUMBNAIL_MAX_SIZE,
+};
 use weasis_core::model::{DicomModel, SplittingRules};
 use web_sys::{ErrorEvent, File, MessageEvent, Worker};
 
 use super::import_report::ReportMessage;
+use super::thumbnails::{Source, ThumbnailRequest, Thumbnails};
 
 /// Loader of the import worker, built by Trunk (`index.html`).
 const WORKER_LOADER: &str = "./import_worker_loader.js";
@@ -29,9 +33,17 @@ pub struct LoadingTask {
     pub aborting: bool,
 }
 
+/// What a request is for.
+enum JobKind {
+    /// An import, shown as the loading task of this id.
+    Import(u32),
+    /// The thumbnail of this series.
+    Thumbnail(String),
+}
+
 /// Files of a request and what was found so far.
 struct Job {
-    task: u32,
+    kind: JobKind,
     request: ImportRequest,
     files: Vec<File>,
     /// Files the worker has read.
@@ -53,6 +65,8 @@ pub struct Importer {
     pub password_prompts: RwSignal<VecDeque<File>, LocalStorage>,
     /// Files of a folder whose DICOMDIR gave nothing, offered for a plain import.
     pub manual_import: RwSignal<Option<Vec<File>>, LocalStorage>,
+    /// Thumbnails of the series.
+    pub thumbnails: Thumbnails,
     // The running job is the first one; only it was sent to the worker.
     jobs: StoredValue<VecDeque<Job>, LocalStorage>,
     worker: StoredValue<Option<Worker>, LocalStorage>,
@@ -70,6 +84,7 @@ impl Importer {
             report: RwSignal::new(VecDeque::new()),
             password_prompts: RwSignal::new_local(VecDeque::new()),
             manual_import: RwSignal::new_local(None),
+            thumbnails: Thumbnails::new(),
             jobs: StoredValue::new_local(VecDeque::new()),
             worker: StoredValue::new_local(None),
             worker_ready: StoredValue::new(false),
@@ -94,7 +109,6 @@ impl Importer {
         self.request(ImportRequest::Dicomdir { paths }, files);
     }
 
-    // TODO(3.1): keep the File of each instance to decode its pixels.
     fn request(&self, request: ImportRequest, files: Vec<File>) {
         if files.is_empty() {
             return;
@@ -107,19 +121,52 @@ impl Importer {
                 aborting: false,
             })
         });
+        let idle = self.jobs.with_value(VecDeque::is_empty);
+        self.enqueue(JobKind::Import(task), request, files);
+        if idle {
+            self.send_next();
+        }
+    }
+
+    /// Renders again the thumbnail of a series, from the image at `position`.
+    pub fn rebuild_thumbnail(&self, series: &str, position: MediaPosition) {
+        let request = self.model.with_untracked(|m| {
+            m.series(series)
+                .and_then(|s| self.thumbnails.request_for(s, position))
+        });
+        let Some(request) = request else {
+            return;
+        };
+        let idle = self.jobs.with_value(VecDeque::is_empty);
+        self.request_thumbnail(request);
+        if idle {
+            self.send_next();
+        }
+    }
+
+    fn request_thumbnail(&self, thumbnail: ThumbnailRequest) {
+        let request = ImportRequest::Thumbnail {
+            entry: thumbnail.source.entry,
+            password: thumbnail.source.password,
+            frame: thumbnail.frame,
+            size: THUMBNAIL_MAX_SIZE,
+        };
+        let files = vec![thumbnail.source.file];
+        self.enqueue(JobKind::Thumbnail(thumbnail.series), request, files);
+    }
+
+    /// Queues a request; the caller sends it when the worker is idle (only the first job of the
+    /// queue is ever sent, once).
+    fn enqueue(&self, kind: JobKind, request: ImportRequest, files: Vec<File>) {
         let job = Job {
-            task,
+            kind,
             request,
             files,
             read: 0,
             errors: 0,
             unsupported: 0,
         };
-        let idle = self.jobs.with_value(VecDeque::is_empty);
         self.jobs.update_value(|jobs| jobs.push_back(job));
-        if idle {
-            self.send_next();
-        }
     }
 
     /// Stops a request: a waiting one is dropped, a running one ends with its worker.
@@ -129,9 +176,11 @@ impl Importer {
                 t.aborting = true;
             }
         });
-        let running = self.jobs.with_value(|jobs| jobs.front().map(|j| j.task)) == Some(task);
-        self.jobs
-            .update_value(|jobs| jobs.retain(|j| j.task != task));
+        let is_task = |job: &Job| matches!(job.kind, JobKind::Import(id) if id == task);
+        let running = self
+            .jobs
+            .with_value(|jobs| jobs.front().is_some_and(is_task));
+        self.jobs.update_value(|jobs| jobs.retain(|j| !is_task(j)));
         self.tasks.update(|t| t.retain(|t| t.id != task));
         if running {
             if let Some(worker) = self.worker.try_update_value(Option::take).flatten() {
@@ -178,11 +227,19 @@ impl Importer {
         };
         let importer = *self;
         let on_message = Closure::<dyn Fn(MessageEvent)>::new(move |event: MessageEvent| {
-            let event = event
-                .data()
+            // A thumbnail comes as [event, pixels], the other events alone.
+            let data = event.data();
+            let (header, pixels) = match data.dyn_ref::<Array>() {
+                Some(parts) => (parts.get(0), Some(Uint8Array::new(&parts.get(1)).to_vec())),
+                None => (data, None),
+            };
+            let event = header
                 .as_string()
                 .and_then(|json| serde_json::from_str(&json).ok());
             match event {
+                Some(ImportEvent::Thumbnail { width, height }) => {
+                    importer.store_thumbnail(width, height, &pixels.unwrap_or_default());
+                }
                 Some(ImportEvent::Ready) => {
                     importer.worker_ready.set_value(true);
                     importer.send_next();
@@ -217,18 +274,32 @@ impl Importer {
                 .with_value(|jobs| jobs.front()?.files.get(file.file).cloned());
             self.password_prompts.update(|p| p.extend(archive));
         }
-        self.jobs.update_value(|jobs| {
-            if let Some(job) = jobs.front_mut() {
-                job.read += 1;
-                job.errors += file.errors.len();
-                job.unsupported += file.unsupported;
-            }
+        let source = self.jobs.try_update_value(|jobs| {
+            let job = jobs.front_mut()?;
+            job.read += 1;
+            job.errors += file.errors.len();
+            job.unsupported += file.unsupported;
+            let password = match &job.request {
+                ImportRequest::Files { password } => password.clone(),
+                _ => None,
+            };
+            Some((job.files.get(file.file)?.clone(), password))
         });
+        let Some((source_file, password)) = source.flatten() else {
+            return;
+        };
         if !file.instances.is_empty() {
             let rules = SplittingRules::built_in();
             self.model.update(|model| {
-                for instance in file.instances {
-                    model.add_split_instance(instance, rules);
+                for imported in file.instances {
+                    let source = Source {
+                        file: source_file.clone(),
+                        entry: imported.entry,
+                        password: password.clone(),
+                    };
+                    self.thumbnails
+                        .record(imported.instance.sop_instance_uid.clone(), source);
+                    model.add_split_instance(imported.instance, rules);
                 }
             });
         }
@@ -255,11 +326,25 @@ impl Importer {
         self.finish();
     }
 
+    fn store_thumbnail(&self, width: u32, height: u32, pixels: &[u8]) {
+        let series = self.jobs.with_value(|jobs| match &jobs.front()?.kind {
+            JobKind::Thumbnail(series) => Some(series.clone()),
+            JobKind::Import(_) => None,
+        });
+        if let Some(series) = series {
+            self.thumbnails.store(series, width, height, pixels);
+        }
+    }
+
     fn finish(&self) {
         let Some(job) = self.jobs.try_update_value(VecDeque::pop_front).flatten() else {
             return;
         };
-        self.tasks.update(|t| t.retain(|t| t.id != job.task));
+        let JobKind::Import(task) = job.kind else {
+            self.send_next();
+            return;
+        };
+        self.tasks.update(|t| t.retain(|t| t.id != task));
         self.report.update(|report| {
             if job.errors > 0 {
                 report.push_back(ReportMessage::Errors(job.errors));
@@ -268,6 +353,10 @@ impl Importer {
                 report.push_back(ReportMessage::Unsupported(job.unsupported));
             }
         });
+        let thumbnails = self.model.with_untracked(|m| self.thumbnails.missing(m));
+        thumbnails
+            .into_iter()
+            .for_each(|t| self.request_thumbnail(t));
         self.send_next();
     }
 }

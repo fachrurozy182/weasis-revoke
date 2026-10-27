@@ -57,13 +57,23 @@ pub fn classify(name: &str, head: &[u8]) -> FileKind {
     }
 }
 
+/// An instance and where it is stored, to read its pixels again later.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImportedInstance {
+    /// The instance to add to the model.
+    pub instance: NewInstance,
+    /// Path of the instance through the archives that hold it, outermost first; empty for a
+    /// file of its own.
+    pub entry: Vec<String>,
+}
+
 /// What the import worker found in one file.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ImportedFile {
     /// Index of the file in the import request.
     pub file: usize,
     /// Instances to add to the model.
-    pub instances: Vec<NewInstance>,
+    pub instances: Vec<ImportedInstance>,
     /// Valid DICOM objects that are not displayed (DICOMDIR, unknown objects).
     pub unsupported: u32,
     /// Files that could not be read, with the reason.
@@ -86,6 +96,17 @@ pub enum ImportRequest {
         /// Path of each file, components separated by `/`.
         paths: Vec<String>,
     },
+    /// The thumbnail of one frame of the only file, or of an entry of that archive.
+    Thumbnail {
+        /// Path of the instance through the archives (`ImportedInstance::entry`).
+        entry: Vec<String>,
+        /// Password of the archives.
+        password: Option<String>,
+        /// Frame, 0-based.
+        frame: u32,
+        /// Largest width and height of the thumbnail.
+        size: u32,
+    },
 }
 
 /// Messages of the import worker.
@@ -97,6 +118,13 @@ pub enum ImportEvent {
     Read(ImportedFile),
     /// No DICOMDIR, or none of the files it references, was found in the folder.
     DicomdirEmpty,
+    /// A thumbnail of this size, whose RGBA pixels follow the event.
+    Thumbnail {
+        /// Width in pixels.
+        width: u32,
+        /// Height in pixels.
+        height: u32,
+    },
     /// Every file of the request was read.
     Finished,
 }
@@ -116,7 +144,10 @@ pub fn read_file(file: usize, name: &str, bytes: &[u8]) -> ImportedFile {
         {
             imported.unsupported += 1;
         }
-        Ok(instance) => imported.instances.push(instance),
+        Ok(instance) => imported.instances.push(ImportedInstance {
+            instance,
+            entry: Vec::new(),
+        }),
         Err(error) => imported.errors.push(format!("{name}: {error}")),
     }
     imported

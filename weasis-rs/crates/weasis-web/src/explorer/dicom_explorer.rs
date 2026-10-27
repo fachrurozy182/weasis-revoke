@@ -7,6 +7,7 @@
 
 use dicom_dictionary_std::tags;
 use leptos::prelude::*;
+use weasis_core::dicom::ObjectKind;
 use weasis_core::explorer::SeriesSelection;
 use weasis_core::gui::{ShortcutTable, id};
 use weasis_core::model::{
@@ -17,6 +18,7 @@ use weasis_core::model::{
 use super::Importer;
 use super::loading_task::LoadingTaskPanel;
 use super::series_menu::{SeriesMenu, SeriesMenuAt};
+use super::thumbnails::Thumbnails;
 use crate::i18n::tr;
 use crate::shortcuts::{Shortcuts, event_binding};
 use crate::widgets::{MenuChoice, SearchableComboBox};
@@ -43,6 +45,7 @@ struct ExplorerState {
     /// Keys of the shown series, in screen order.
     shown: Memo<Vec<String>>,
     menu: RwSignal<Option<SeriesMenuAt>>,
+    thumbnails: Thumbnails,
 }
 
 /// The panel.
@@ -74,6 +77,7 @@ pub fn DicomExplorer(importer: Importer) -> impl IntoView {
         selection: RwSignal::new(SeriesSelection::default()),
         shown,
         menu: RwSignal::new(None),
+        thumbnails: importer.thumbnails,
     };
     // Removed or hidden series leave the selection.
     Effect::new(move |_| shown.with(|s| state.selection.update(|sel| sel.retain_shown(s))));
@@ -102,7 +106,7 @@ pub fn DicomExplorer(importer: Importer) -> impl IntoView {
                     <StudyPane study=study state=state />
                 </For>
             </div>
-            <SeriesMenu model=model selection=state.selection at=state.menu />
+            <SeriesMenu importer=importer selection=state.selection at=state.menu />
         </div>
     }
 }
@@ -168,7 +172,17 @@ fn SeriesPane(series: SeriesNode, state: ExplorerState) -> impl IntoView {
         .to_owned();
     let size = format!("{THUMBNAIL_SIZE}px");
     let tooltip = description.clone();
+    let count = image_count(&series);
+    let split = series.split_number.map(|n| format!("#{n}"));
+    let kind = series
+        .instances
+        .first()
+        .map_or(ObjectKind::Image, |i| i.kind);
     let key = series.key;
+    let image = {
+        let key = key.clone();
+        move || state.thumbnails.images.with(|i| i.get(&key).cloned())
+    };
     let selected = {
         let key = key.clone();
         move || state.selection.with(|s| s.contains(&key))
@@ -208,12 +222,43 @@ fn SeriesPane(series: SeriesNode, state: ExplorerState) -> impl IntoView {
             on:mousedown=on_press
             on:contextmenu=on_menu
         >
-            // TODO(2.5.c): the thumbnail image.
-            <div class="w-thumbnail" style:width=size.clone() style:height=size.clone()></div>
+            // The image, or the kind of series; the number of images and the split part over it.
+            <div class="w-thumbnail" style:width=size.clone() style:height=size.clone()>
+                {move || match image() {
+                    Some(url) => view! { <img src=url alt="" /> }.into_any(),
+                    None => view! { <span class="w-thumbnail-kind">{kind_label(kind)}</span> }.into_any(),
+                }}
+                <span class="w-thumbnail-count">{count}</span>
+                <span class="w-thumbnail-split">{split}</span>
+            </div>
             <span class="mini w-series-label" style:width=size title=tooltip>
                 {description}
             </span>
         </div>
+    }
+}
+
+/// Number of images of a series: the frames of its instances (`MediaSeries.size`).
+pub(super) fn image_count(series: &SeriesNode) -> u32 {
+    series
+        .instances
+        .iter()
+        .map(|i| {
+            let frames = i.attributes.get(tags::NUMBER_OF_FRAMES);
+            frames.and_then(|n| n.trim().parse().ok()).unwrap_or(1)
+        })
+        .sum()
+}
+
+/// Kind of a series shown while it has no thumbnail image (`Thumbnail.buildThumbnail`).
+fn kind_label(kind: ObjectKind) -> &'static str {
+    match kind {
+        ObjectKind::Video => tr("Thumbnail.video"),
+        ObjectKind::StructuredReport => tr("Thumbnail.dicom_sr"),
+        ObjectKind::EncapsulatedDocument => tr("Thumbnail.pdf"),
+        ObjectKind::Waveform => "ECG",
+        ObjectKind::Audio => tr("Thumbnail.audio"),
+        _ => tr("Thumbnail.img"),
     }
 }
 

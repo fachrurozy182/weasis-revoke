@@ -1,12 +1,15 @@
 //! Context menu of a series in the explorer: select the related series, remove the selected
-//! series, or the study or patient of a single selected series.
+//! series, or the study or patient of a single selected series, rebuild its thumbnail.
 //!
 //! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/main/ThumbnailMouseAndKeyAdapter.java`
 //! (`showContextMenu`).
 
 use leptos::prelude::*;
+use weasis_core::explorer::MediaPosition;
 use weasis_core::explorer::{SeriesSelection, related_series};
-use weasis_core::model::DicomModel;
+
+use super::Importer;
+use super::dicom_explorer::image_count;
 
 use crate::i18n::tr;
 
@@ -22,17 +25,22 @@ pub struct SeriesMenuAt {
 }
 
 /// The menu, shown while `at` is set.
-// TODO(2.5.c, 2.5.d, 2.6, 2.7): thumbnail, merge and phases, open and add, DICOM information.
+// TODO(2.5.d, 2.6, 2.7): merge and phases, open and add, DICOM information.
 #[component]
 pub fn SeriesMenu(
-    model: RwSignal<DicomModel>,
+    importer: Importer,
     selection: RwSignal<SeriesSelection>,
     at: RwSignal<Option<SeriesMenuAt>>,
 ) -> impl IntoView {
     move || {
         at.get().map(|SeriesMenuAt { series, x, y }| {
             let dismiss = move || at.set(None);
+            let model = importer.model;
             let single = selection.with_untracked(|s| s.selected().len() == 1);
+            // Rebuilding the thumbnail is offered for a series of several images.
+            let several_images = model.with_untracked(|m| {
+                m.series(&series).is_some_and(|s| image_count(s) > 1)
+            });
             let item = |key: &'static str, action: Box<dyn Fn() + Send + Sync>| {
                 view! {
                     <li role="menuitem" class="w-menu-item" on:click=move |_| {
@@ -99,6 +107,24 @@ pub fn SeriesMenu(
                     {single.then(|| view! {
                         {item("DicomExplorer.rem_study", remove_study)}
                         {item("DicomExplorer.rem_pat", remove_patient)}
+                    })}
+                    {(single && several_images).then(|| {
+                        let rebuild = |key: &'static str, position: MediaPosition| {
+                            let series = series.clone();
+                            item(key, Box::new(move || importer.rebuild_thumbnail(&series, position)))
+                        };
+                        view! {
+                            <li role="separator" class="w-menu-separator"></li>
+                            <li role="menuitem" class="w-menu-item w-submenu" aria-haspopup="menu">
+                                <span>{tr("DicomExplorer.build_thumb")}</span>
+                                <span class="w-submenu-arrow" aria-hidden="true"></span>
+                                <ul class="w-menu" role="menu">
+                                    {rebuild("DicomExplorer.from_1", MediaPosition::First)}
+                                    {rebuild("DicomExplorer.from_mid", MediaPosition::Middle)}
+                                    {rebuild("DicomExplorer.from_last", MediaPosition::Last)}
+                                </ul>
+                            </li>
+                        }
                     })}
                 </ul>
             }

@@ -2,7 +2,8 @@
 //! (decision D3) and posts, as JSON, an `ImportEvent::Read` per file then `Finished`.
 //!
 //! It posts `Ready` once started. A request is an array: an `ImportRequest` as JSON, then the
-//! `File`s; requests are handled one after the other.
+//! `File`s; requests are handled one after the other. A thumbnail is posted as an array: the
+//! `ImportEvent::Thumbnail` as JSON, then its RGBA pixels.
 //!
 //! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/LoadLocalDicom.java`
 //! (the reading threads of `Importer`), `imp/DicomDirLoader.java` and `imp/DicomZipMediaIO.java`.
@@ -11,8 +12,8 @@ use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
 use weasis_core::explorer::{
-    FileKind, HEAD_LENGTH, ImportEvent, ImportRequest, ImportedFile, classify, dicomdir_selection,
-    read_archive, read_file,
+    FileKind, HEAD_LENGTH, ImportEvent, ImportRequest, ImportedFile, archive_entry, classify,
+    dicomdir_selection, read_archive, read_file, render_thumbnail,
 };
 use web_sys::{Blob, DedicatedWorkerGlobalScope, File, FileReaderSync, MessageEvent};
 
@@ -70,6 +71,30 @@ fn import(message: &Array) {
                 None => post(&ImportEvent::DicomdirEmpty),
             }
         }
+        (
+            Some(reader),
+            Some(ImportRequest::Thumbnail {
+                entry,
+                password,
+                frame,
+                size,
+            }),
+        ) => {
+            let bytes = files.first().and_then(|file| bytes(&reader, file));
+            let rendered = bytes
+                .ok_or_else(|| "cannot read the file".to_owned())
+                .and_then(|bytes| {
+                    let content =
+                        archive_entry(&bytes, &entry, password.as_deref().map(str::as_bytes));
+                    content
+                        .and_then(|content| render_thumbnail(&content, frame, size))
+                        .map_err(|e| e.to_string())
+                });
+            match rendered {
+                Ok(image) => post_thumbnail(image),
+                Err(error) => web_sys::console::warn_1(&format!("no thumbnail: {error}").into()),
+            }
+        }
         _ => {
             for (index, file) in files.iter().enumerate() {
                 post(&ImportEvent::Read(failed(index, file)));
@@ -120,6 +145,20 @@ fn failed(index: usize, file: &File) -> ImportedFile {
         file: index,
         errors: vec![format!("{}: cannot read the file", file.name())],
         ..ImportedFile::default()
+    }
+}
+
+fn post_thumbnail(image: weasis_core::image::RgbaImage) {
+    let event = ImportEvent::Thumbnail {
+        width: image.width,
+        height: image.height,
+    };
+    let Ok(json) = serde_json::to_string(&event) else {
+        return;
+    };
+    let message = Array::of2(&json.into(), &Uint8Array::from(image.rgba.as_slice()));
+    if let Err(error) = scope().post_message(&message) {
+        web_sys::console::error_1(&error);
     }
 }
 

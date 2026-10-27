@@ -30,7 +30,8 @@ pub struct DirSeries {
     /// Instances, in record order.
     pub instances: Vec<DirInstance>,
     /// Icon Image Sequence item of the series record, else of its first instance record.
-    // TODO(2.5): decode the icon for the explorer thumbnail.
+    // NOTE: the explorer renders its thumbnails from the files it reads (step 2.5.c), so this
+    // icon is not shown, unlike in the desktop application before the files are loaded.
     pub icon: Option<InMemDicomObject>,
 }
 

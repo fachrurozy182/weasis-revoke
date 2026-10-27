@@ -56,13 +56,14 @@ thiserror = "2.0.21"
 leptos = { version = "0.8.22", features = ["csr"] }
 console_error_panic_hook = "0.1.7"
 # Browser APIs Leptos does not enable: drag-and-drop data, element bounds, local storage, the
-# platform name, generated pages opened in a new tab, the import worker and dropped folders.
-# Same versions as the ones Leptos locks.
+# platform name, generated pages opened in a new tab, the import worker, dropped folders and
+# thumbnails drawn on a canvas. Same versions as the ones Leptos locks.
 web-sys = { version = "0.3.106", features = [
-  "Blob", "BlobPropertyBag", "DataTransfer", "DataTransferItem", "DataTransferItemList",
-  "DedicatedWorkerGlobalScope", "DomRect", "ErrorEvent", "File", "FileList", "FileReaderSync",
-  "FileSystemDirectoryEntry", "FileSystemDirectoryReader", "FileSystemEntry",
-  "FileSystemFileEntry", "MessageEvent", "Navigator", "Storage", "Url", "Worker",
+  "Blob", "BlobPropertyBag", "CanvasRenderingContext2d", "DataTransfer", "DataTransferItem",
+  "DataTransferItemList", "DedicatedWorkerGlobalScope", "DomRect", "ErrorEvent", "File",
+  "FileList", "FileReaderSync", "FileSystemDirectoryEntry", "FileSystemDirectoryReader",
+  "FileSystemEntry", "FileSystemFileEntry", "HtmlCanvasElement", "ImageData", "MessageEvent",
+  "Navigator", "Storage", "Url", "Worker",
 ] }
 wasm-bindgen-futures = "0.4.79"
 js-sys = "0.3.106"
