@@ -185,3 +185,13 @@
   border-radius: var(--arc);
   padding: 3px 6px;
 }
+
+/* Selected series (SeriesSelectionModel): the colors of a selected list item. */
+.w-series-pane[aria-selected="true"] {
+  color: var(--List-selectionForeground, var(--ui-selectionForeground));
+  background: var(--List-selectionBackground, var(--ui-selectionBackground));
+}
+
+.w-patient-pane:focus-visible {
+  outline: none;
+}

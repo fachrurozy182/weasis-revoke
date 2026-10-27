@@ -184,6 +184,21 @@ impl DicomModel {
             .find(|s| s.key == key)
     }
 
+    /// The study holding a series.
+    pub fn study_of_series(&self, key: &str) -> Option<&StudyNode> {
+        self.patients
+            .iter()
+            .flat_map(|p| &p.studies)
+            .find(|s| s.series.iter().any(|series| series.key == key))
+    }
+
+    /// The patient holding a study.
+    pub fn patient_of_study(&self, uid: &str) -> Option<&PatientNode> {
+        self.patients
+            .iter()
+            .find(|p| p.studies.iter().any(|s| s.uid == uid))
+    }
+
     pub(super) fn series_mut(&mut self, key: &str) -> Option<&mut SeriesNode> {
         self.patients
             .iter_mut()

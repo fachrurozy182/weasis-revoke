@@ -6,8 +6,8 @@ untuk tahu harus lanjut dari mana. Rencana lengkap: [`PLAN.md`](PLAN.md).
 ## Status sekarang
 
 - **Fase:** 2 — Kerangka UI & explorer (Fase 0 & 1 selesai; 0.5 ditunda, D12)
-- **Langkah terakhir selesai:** 2.5.a Panel explorer: pasien, studi, seri
-- **Langkah berikutnya:** 2.5.b Seleksi seri & keyboard explorer
+- **Langkah terakhir selesai:** 2.5.b Seleksi seri & keyboard explorer
+- **Langkah berikutnya:** 2.5.c Thumbnail seri
 - **Ditunda (D12):** 0.5 golden dari aplikasi Java, uji integrasi PACS
 - **Celah diketahui:** belum ada contoh JPEG Lossless `.4.57` dan HEVC `.4.107` (lihat `testdata/README.md`)
 - **Hambatan:** tidak ada
@@ -113,7 +113,7 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 - [x] **2.4.b** Dialog File ▸ Import ▸ DICOM (halaman Local Device: file, folder, rekursif) & drag and drop ke jendela
 - [x] **2.4.c** DICOMDIR & ZIP (password) di worker; halaman DICOMDIR di dialog Import
 - [x] **2.5.a** Explorer: pemilih pasien (combo box yang bisa dicari), panel studi & seri terurut (`DicomSorter`)
-- [ ] **2.5.b** Seleksi seri (klik, Ctrl, Shift), shortcut explorer, menu konteks
+- [x] **2.5.b** Seleksi seri (klik, Ctrl, Shift), shortcut explorer, menu konteks
 - [ ] **2.5.c** Thumbnail seri (decode di worker), ikon DICOMDIR
 - [ ] **2.5.d** Filter seri (`SeriesFilter`) & `SplitSeriesManager`
 - [ ] **2.5.e** Masking identitas pada label explorer
@@ -193,3 +193,4 @@ Verifikasi tiap sub-langkah UI: unit test + e2e Playwright (Chromium) dengan scr
 | 2026-10-26 | 2.4.b | `weasis-web::explorer::{ImportDialog, dropped_files}`: File ▸ Import ▸ DICOM membuka dialog `DicomImport` (daftar halaman kiri, tombol ?/Import/Import and Close/Close) dengan halaman `LocalImport` (field file & folder + "Search recursively" disimpan `last.recursive.mode`); browser tidak memberi path → field menampilkan nama, satu folder per kali (NOTE); folder = input `webkitdirectory`, non-rekursif disaring dari `webkitRelativePath`; file/folder yang di-drop ke jendela → explorer DICOM, folder dibaca rekursif lewat `webkitGetAsEntry` (fallback `getAsFile`), drag tab dock tidak terpengaruh; `help::online_help_url` dipindah ke modul sendiri. e2e 2 test baru (total 27), termasuk laporan "50 file dilewati" + "jangan tampilkan lagi" |
 | 2026-10-27 | 2.4.c | `weasis_core::explorer::{read_archive, dicomdir_files, dicomdir_selection, ImportRequest}`: ZIP dibaca di worker (lewat DICOMDIR di root bila ada, kalau tidak semua entri DICOM, ZIP di dalam ZIP ikut); arsip terenkripsi → `password_required` → dialog "DICOM Zip" (Cancel = dilewati); halaman DICOMDIR di dialog Import (folder yang berisi DICOMDIR; deteksi CD-ROM & cache tidak relevan di browser — NOTE), hanya file yang dirujuk dibaca (bukan membangun seri dari record — NOTE, hasil model sama); DICOMDIR tidak ada/kosong → tanya "import manual?" → folder diimpor langsung (NOTE). Permintaan worker = header JSON `ImportRequest` + `File`s (path dikirim eksplisit karena `webkitRelativePath` hilang di structured clone). Data uji `synthetic/ct-series-encrypted.zip` (password `weasis`, ZipCrypto, dibuat `generate.py` dengan CLI `zip`). e2e 2 test baru (total 29). **Langkah 2.4 selesai** |
 | 2026-10-27 | 2.5.a | `weasis_core::model::{compare_patients, compare_studies, compare_series, SortingTime}` (port `DicomSorter`: studi terbaru dulu, seri per nomor/bagian split/tanggal/deskripsi/instance pertama, SR & dokumen di akhir; nama dibandingkan tanpa huruf besar-kecil, bukan collator bahasa — NOTE) + `{patient_label, study_label, series_label}` (TagView node `DicomModel`, "?" bila kosong; `TagView::of`); tag instance `DateOfSecondaryCapture`/`TimeOfSecondaryCapture`/`StackID` ditambahkan untuk urutan; widget `SearchableComboBox`; explorer: pemilih pasien (pasien pertama otomatis), panel studi (judul) dengan seri (kotak thumbnail 144 px + deskripsi), seri PR/KO/SEG/RT disembunyikan. e2e diperbarui + 1 test baru (total 30) |
+| 2026-10-27 | 2.5.b | `weasis_core::explorer::{SeriesSelection, related_series}` (port `SeriesSelectionModel`: klik, Ctrl toggle, Shift interval dari anchor, Ctrl+Shift tambah/hapus interval menurut anchor, next/prev berputar, first/last/all; seri dengan Frame of Reference sama, opsional orientasi sama dari gambar tengah) + `DicomModel::{study_of_series, patient_of_study}`; explorer: panel seri bisa dipilih (`aria-selected`), shortcut `explorer.*` lewat `ShortcutTable` (Enter → 2.6), klik kanan menambah seri ke seleksi lalu `SeriesMenu` (Select related Series (same axis), Remove selected Series / this Study / this Patient; item lain menunggu 2.5.c/2.5.d/2.6/2.7). e2e 3 test baru (total 33) |

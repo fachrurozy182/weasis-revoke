@@ -9,6 +9,7 @@ mod import_prompts;
 mod import_report;
 mod importer;
 mod loading_task;
+mod series_menu;
 
 pub use dicom_explorer::DicomExplorer;
 pub use dropped_files::{carries_files, dropped_entries, files_of};
