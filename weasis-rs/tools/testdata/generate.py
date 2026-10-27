@@ -597,6 +597,10 @@ def main() -> None:
     with zipfile.ZipFile(OUT_DIR / "ct-series.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for path in ct_paths:
             archive.write(path, f"ct-series/{path.name}")
+    # Password "weasis", traditional ZIP encryption: the zipfile module cannot write it.
+    encrypted = OUT_DIR / "ct-series-encrypted.zip"
+    encrypted.unlink(missing_ok=True)
+    subprocess.run(["zip", "-q", "-j", "-P", "weasis", str(encrypted), str(ct_paths[0])], check=True)
 
     print(f"Synthetic test data written to {OUT_DIR}")
 

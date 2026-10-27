@@ -68,6 +68,24 @@ pub struct ImportedFile {
     pub unsupported: u32,
     /// Files that could not be read, with the reason.
     pub errors: Vec<String>,
+    /// An encrypted archive whose password is missing or wrong.
+    pub password_required: bool,
+}
+
+/// How the import worker reads the files of a request.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ImportRequest {
+    /// Each file on its own; `password` opens encrypted ZIP archives.
+    Files {
+        /// Password of the archives.
+        password: Option<String>,
+    },
+    /// The files of a folder holding a DICOMDIR, with their path from that folder: only the
+    /// files the DICOMDIR references are read.
+    Dicomdir {
+        /// Path of each file, components separated by `/`.
+        paths: Vec<String>,
+    },
 }
 
 /// Messages of the import worker.
@@ -77,6 +95,8 @@ pub enum ImportEvent {
     Ready,
     /// A file of the request was read.
     Read(ImportedFile),
+    /// No DICOMDIR, or none of the files it references, was found in the folder.
+    DicomdirEmpty,
     /// Every file of the request was read.
     Finished,
 }

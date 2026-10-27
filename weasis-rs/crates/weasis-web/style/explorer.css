@@ -126,3 +126,19 @@
   border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
   border-radius: 50%;
 }
+
+/* Password of an encrypted archive. */
+.w-password {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.w-password input {
+  font: inherit;
+  color: var(--PasswordField-foreground, var(--ui-foreground));
+  background: var(--PasswordField-background, var(--ui-background));
+  border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
+  border-radius: var(--arc);
+  padding: 3px 6px;
+}

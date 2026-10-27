@@ -2,10 +2,12 @@
 //! DICOMDIR) with the selected page on the right.
 //!
 //! NOTE: browsers never tell the path of a chosen file, so the fields show the name of the file
-//! or folder, and the last location cannot be remembered; a folder is chosen one at a time.
+//! or folder, and the last location cannot be remembered; a folder is chosen one at a time. The
+//! DICOMDIR page takes the folder holding the DICOMDIR, since its files must be chosen too; the
+//! CD-ROM detection and the copy into a cache of the desktop application have no use there.
 //!
-//! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/imp/DicomImport.java`
-//! and `LocalImport.java`.
+//! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/imp/DicomImport.java`,
+//! `LocalImport.java` and `DicomDirImport.java`.
 
 use leptos::prelude::*;
 use web_sys::{File, HtmlInputElement};
@@ -18,32 +20,74 @@ use crate::widgets::{Button, ButtonKind, Dialog};
 
 /// Preference: search the subfolders of a chosen folder.
 const LAST_RECURSIVE_MODE: &str = "last.recursive.mode";
+/// Preference: the page shown when the dialog opens.
+const LAST_PAGE: &str = "last.dicom.import.page";
+
+/// A page of the dialog.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+enum Page {
+    Local,
+    Dicomdir,
+}
+
+impl Page {
+    fn title(self) -> &'static str {
+        match self {
+            Self::Local => tr("LocalImport.local_dev"),
+            Self::Dicomdir => tr("DicomDirImport.dicomdir"),
+        }
+    }
+}
 
 /// The dialog, shown while `open` is true.
-// TODO(2.4.c): the DICOMDIR page. TODO(2.6): the viewer opening option of the pages.
+// TODO(2.6): the viewer opening option of the pages.
 #[component]
 pub fn ImportDialog(open: RwSignal<bool>, importer: Importer) -> impl IntoView {
     let files = RwSignal::new_local(Vec::<File>::new());
     let folder = RwSignal::new_local(Vec::<File>::new());
+    let dicomdir_folder = RwSignal::new_local(Vec::<File>::new());
+    let page = RwSignal::new(storage::load(LAST_PAGE).unwrap_or(Page::Local));
+    Effect::new(move |_| storage::save(LAST_PAGE, &page.get()));
     let recursive = RwSignal::new(storage::load(LAST_RECURSIVE_MODE).unwrap_or(true));
     Effect::new(move |_| storage::save(LAST_RECURSIVE_MODE, &recursive.get()));
-    let import = move || {
-        let mut chosen = files.get_untracked();
-        chosen.extend(folder_files(
-            &folder.get_untracked(),
-            recursive.get_untracked(),
-        ));
-        importer.import(chosen);
-        files.set(Vec::new());
-        folder.set(Vec::new());
+    let import = move || match page.get_untracked() {
+        Page::Local => {
+            let mut chosen = files.get_untracked();
+            chosen.extend(folder_files(
+                &folder.get_untracked(),
+                recursive.get_untracked(),
+            ));
+            importer.import(chosen);
+            files.set(Vec::new());
+            folder.set(Vec::new());
+        }
+        Page::Dicomdir => {
+            let chosen = dicomdir_folder.get_untracked();
+            let paths = chosen.iter().map(relative_path).collect();
+            importer.import_dicomdir(chosen, paths);
+            dicomdir_folder.set(Vec::new());
+        }
+    };
+    let pages = move || {
+        [Page::Local, Page::Dicomdir].map(|p| {
+            view! {
+                <li
+                    role="option"
+                    aria-selected=move || (page.get() == p).to_string()
+                    on:click=move |_| page.set(p)
+                >
+                    {p.title()}
+                </li>
+            }
+        })
     };
     view! {
         <Dialog title=tr("DicomImport.imp_dicom") open=open>
             <div class="w-item-dialog">
                 <ul class="w-item-pages" role="listbox" aria-label=tr("DicomImport.imp_dicom")>
-                    <li role="option" aria-selected="true">{tr("LocalImport.local_dev")}</li>
+                    {pages}
                 </ul>
-                <div class="w-item-page">
+                <div class="w-item-page" hidden=move || page.get() != Page::Local>
                     <fieldset>
                         <legend>{tr("LocalImport.files")}</legend>
                         <FileField label=tr("LocalImport.files") files=files directory=false />
@@ -59,6 +103,12 @@ pub fn ImportDialog(open: RwSignal<bool>, importer: Importer) -> impl IntoView {
                             />
                             {tr("LocalImport.recursive")}
                         </label>
+                    </fieldset>
+                </div>
+                <div class="w-item-page" hidden=move || page.get() != Page::Dicomdir>
+                    <fieldset>
+                        <legend>{tr("DicomDirImport.dicomdir")}</legend>
+                        <FileField label=tr("DicomDirImport.path") files=dicomdir_folder directory=true />
                     </fieldset>
                 </div>
             </div>

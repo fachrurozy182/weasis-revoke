@@ -190,7 +190,7 @@ perbandingan dengan `testdata/golden/` ditambahkan setelah langkah 0.5 dijalanka
   (pengganti DockingFrames), status bar (Java tidak punya status bar; yang ada indikator di ujung
   menu bar — lihat PROGRESS 2.2.c).
 - [x] **2.3** Shortcut (`ShortcutManager`, `KeyBinding`, `Shortcut-Management.md`).
-- [ ] **2.4** Import lokal: file, folder, drag & drop, DICOMDIR, ZIP; parse di Worker + progress
+- [x] **2.4** Import lokal: file, folder, drag & drop, DICOMDIR, ZIP; parse di Worker + progress
   (`LocalImport`, `DicomDirImport`, `LoadLocalDicom`, `LoadingTaskPanel`).
 - [ ] **2.5** DICOM explorer: pasien/studi/seri, thumbnail, filter, split series, pilih pasien
   (`DicomExplorer`, `PatientPane`, `StudyPane`, `SeriesPane`, `SeriesFilter`, `SplitSeriesManager`).

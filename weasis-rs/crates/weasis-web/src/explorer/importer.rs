@@ -1,8 +1,9 @@
 //! Imports local files into the model: the files go to the import worker one request at a time,
 //! each request showing as a loading task until the worker has read all its files.
 //!
-//! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/LoadLocalDicom.java`
-//! and `LoadDicom.java` (counting errors and unsupported files, `done`).
+//! Java reference: `weasis-dicom/weasis-dicom-explorer/src/main/java/org/weasis/dicom/explorer/LoadLocalDicom.java`,
+//! `LoadDicom.java` (counting errors and unsupported files, `done`), `imp/DicomDirImport.java`
+//! and `imp/DicomZipMediaIO.java`.
 
 use std::collections::VecDeque;
 
@@ -10,7 +11,7 @@ use js_sys::Array;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
-use weasis_core::explorer::{ImportEvent, ImportedFile};
+use weasis_core::explorer::{ImportEvent, ImportRequest, ImportedFile};
 use weasis_core::model::{DicomModel, SplittingRules};
 use web_sys::{ErrorEvent, File, MessageEvent, Worker};
 
@@ -31,6 +32,7 @@ pub struct LoadingTask {
 /// Files of a request and what was found so far.
 struct Job {
     task: u32,
+    request: ImportRequest,
     files: Vec<File>,
     /// Files the worker has read.
     read: usize,
@@ -47,6 +49,10 @@ pub struct Importer {
     pub tasks: RwSignal<Vec<LoadingTask>>,
     /// Messages to show once a request ends.
     pub report: RwSignal<VecDeque<ReportMessage>>,
+    /// Encrypted archives waiting for their password.
+    pub password_prompts: RwSignal<VecDeque<File>, LocalStorage>,
+    /// Files of a folder whose DICOMDIR gave nothing, offered for a plain import.
+    pub manual_import: RwSignal<Option<Vec<File>>, LocalStorage>,
     // The running job is the first one; only it was sent to the worker.
     jobs: StoredValue<VecDeque<Job>, LocalStorage>,
     worker: StoredValue<Option<Worker>, LocalStorage>,
@@ -62,6 +68,8 @@ impl Importer {
             model: RwSignal::new(DicomModel::new()),
             tasks: RwSignal::new(Vec::new()),
             report: RwSignal::new(VecDeque::new()),
+            password_prompts: RwSignal::new_local(VecDeque::new()),
+            manual_import: RwSignal::new_local(None),
             jobs: StoredValue::new_local(VecDeque::new()),
             worker: StoredValue::new_local(None),
             worker_ready: StoredValue::new(false),
@@ -70,8 +78,24 @@ impl Importer {
     }
 
     /// Imports files; nothing happens for an empty list.
-    // TODO(3.1): keep the File of each instance to decode its pixels.
     pub fn import(&self, files: Vec<File>) {
+        self.request(ImportRequest::Files { password: None }, files);
+    }
+
+    /// Imports encrypted archives with their password.
+    pub fn import_with_password(&self, files: Vec<File>, password: String) {
+        let password = Some(password);
+        self.request(ImportRequest::Files { password }, files);
+    }
+
+    /// Imports the files of a folder through its DICOMDIR; `paths` are the paths of the files
+    /// in the folder.
+    pub fn import_dicomdir(&self, files: Vec<File>, paths: Vec<String>) {
+        self.request(ImportRequest::Dicomdir { paths }, files);
+    }
+
+    // TODO(3.1): keep the File of each instance to decode its pixels.
+    fn request(&self, request: ImportRequest, files: Vec<File>) {
         if files.is_empty() {
             return;
         }
@@ -85,6 +109,7 @@ impl Importer {
         });
         let job = Job {
             task,
+            request,
             files,
             read: 0,
             errors: 0,
@@ -117,10 +142,14 @@ impl Importer {
     }
 
     fn send_next(&self) {
-        let files = self
-            .jobs
-            .with_value(|jobs| jobs.front().map(|job| job.files.iter().collect::<Array>()));
-        let Some(files) = files else {
+        let message = self.jobs.with_value(|jobs| {
+            let job = jobs.front()?;
+            let request = serde_json::to_string(&job.request).ok()?;
+            let message = Array::of1(&request.into());
+            job.files.iter().for_each(|file| _ = message.push(file));
+            Some(message)
+        });
+        let Some(message) = message else {
             return;
         };
         let Some(worker) = self.worker() else {
@@ -130,7 +159,7 @@ impl Importer {
             // Sent once the worker is ready.
             return;
         }
-        if let Err(error) = worker.post_message(&files) {
+        if let Err(error) = worker.post_message(&message) {
             leptos::logging::error!("cannot send the files to the import worker: {error:?}");
         }
     }
@@ -159,6 +188,7 @@ impl Importer {
                     importer.send_next();
                 }
                 Some(ImportEvent::Read(file)) => importer.add(file),
+                Some(ImportEvent::DicomdirEmpty) => importer.offer_manual_import(),
                 Some(ImportEvent::Finished) => importer.finish(),
                 None => leptos::logging::error!("unexpected message of the import worker"),
             }
@@ -181,6 +211,12 @@ impl Importer {
         for error in &file.errors {
             leptos::logging::warn!("{error}");
         }
+        if file.password_required {
+            let archive = self
+                .jobs
+                .with_value(|jobs| jobs.front()?.files.get(file.file).cloned());
+            self.password_prompts.update(|p| p.extend(archive));
+        }
         self.jobs.update_value(|jobs| {
             if let Some(job) = jobs.front_mut() {
                 job.read += 1;
@@ -196,6 +232,13 @@ impl Importer {
                 }
             });
         }
+    }
+
+    fn offer_manual_import(&self) {
+        let files = self
+            .jobs
+            .with_value(|jobs| jobs.front().map(|job| job.files.clone()));
+        self.manual_import.set(files);
     }
 
     /// The worker stopped on an error: the files of the running request it had not read count

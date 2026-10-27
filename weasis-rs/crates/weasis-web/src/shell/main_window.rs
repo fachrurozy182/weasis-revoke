@@ -13,8 +13,8 @@ use super::menus::{action, main_menus};
 use super::shortcut_page::shortcut_page;
 use super::viewers::{ViewerArea, Viewers};
 use crate::explorer::{
-    DicomExplorer, ImportDialog, ImportReport, Importer, carries_files, chosen_files,
-    dropped_entries, files_of,
+    DicomExplorer, ImportDialog, ImportReport, Importer, ManualImportDialog, ZipPasswordDialog,
+    carries_files, chosen_files, dropped_entries, files_of,
 };
 use crate::help::online_help_url;
 use crate::i18n::tr;
@@ -104,6 +104,8 @@ pub fn MainWindow() -> impl IntoView {
             <PanelList open=panel_list viewers=viewers docking=docking />
             <ImportReport messages=importer.report />
             <ImportDialog open=import_dialog importer=importer />
+            <ZipPasswordDialog importer=importer />
+            <ManualImportDialog importer=importer />
             // File ▸ Open ▸ DICOM: every file can be chosen, DICOM files often have no extension.
             // TODO(2.6): open the series in the default viewer, like `View2dFactory`.
             <input

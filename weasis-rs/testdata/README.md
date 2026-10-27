@@ -33,7 +33,7 @@ berlisensi bebas. Total ±9 MB.
 | PDF terenkapsulasi | `synthetic/encapsulated-pdf.dcm` |
 | Video | `synthetic/video-mpeg2.dcm`, `synthetic/video-mpeg4-h264.dcm` |
 | DICOMDIR | `pydicom/dicomdir-tiny-alpha/` |
-| ZIP | `synthetic/ct-series.zip` |
+| ZIP | `synthetic/ct-series.zip`, `synthetic/ct-series-encrypted.zip` (password `weasis`, enkripsi ZIP tradisional) |
 | Overlay | `pydicom/examples_overlay.dcm`, `pydicom/MR-SIEMENS-DICOM-WithOverlays.dcm`, `weasis-dicom-tools/overlay.dcm` |
 | Hanging protocol | `weasis-dicom-tools/NeurosurgeryPlan.dcm` |
 | File tanpa file meta | `pydicom/rtstruct.dcm` |
