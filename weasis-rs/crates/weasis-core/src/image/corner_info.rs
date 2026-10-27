@@ -57,6 +57,11 @@ pub struct TagView {
 }
 
 impl TagView {
+    /// The first of `tags` that has a value, shown alone.
+    pub fn of(tags: &[Tag]) -> Self {
+        Self::new(None, tags)
+    }
+
     fn new(format: Option<&str>, tags: &[Tag]) -> Self {
         Self {
             tags: tags.to_vec(),

@@ -49,10 +49,53 @@
   }
 }
 
-.w-patient-list {
-  margin: 0;
+/* Studies of the selected patient: a titled group of series each (StudyPane). */
+.w-patient-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.w-study-pane {
+  min-width: 0;
+  margin: 0 3px;
+  padding: 3px;
+  border: 1px solid var(--TitledBorder-borderColor, var(--ui-borderColor));
+  border-radius: var(--arc);
+}
+
+.w-study-pane > legend {
   padding: 0 4px;
-  list-style: none;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+.w-series-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* SeriesPane: the thumbnail above its description. */
+.w-series-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--arc);
+  background: var(--Panel-background, var(--ui-background));
+}
+
+.w-thumbnail {
+  background: #000;
+  border: 1px solid var(--ui-borderColor);
+}
+
+.w-series-label {
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Messages at the end of an import. */

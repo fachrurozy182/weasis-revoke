@@ -46,6 +46,10 @@ pub fn new_instance(file: &DicomFile) -> Result<NewInstance> {
         // Whether the pixels may show identity (`PixelPrivacy`).
         tags::BURNED_IN_ANNOTATION,
         tags::RECOGNIZABLE_VISUAL_FEATURES,
+        // Order of the series in the explorer (`DicomSorter`).
+        tags::DATE_OF_SECONDARY_CAPTURE,
+        tags::TIME_OF_SECONDARY_CAPTURE,
+        tags::STACK_ID,
     ];
     for tag in extra_tags
         .into_iter()

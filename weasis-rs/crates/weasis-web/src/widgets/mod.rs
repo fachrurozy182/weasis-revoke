@@ -4,6 +4,7 @@
 
 mod button;
 mod collapsible;
+mod combobox;
 mod dialog;
 mod dropdown;
 mod slider;
@@ -11,6 +12,7 @@ mod toolbar;
 
 pub use button::{Button, ButtonKind, ToggleButton};
 pub use collapsible::CollapsiblePanel;
+pub use combobox::SearchableComboBox;
 pub use dialog::Dialog;
 pub use dropdown::{DropDownButton, MenuChoice};
 pub use slider::Slider;

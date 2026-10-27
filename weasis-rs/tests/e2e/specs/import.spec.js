@@ -12,6 +12,15 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('menubar')).toBeVisible();
 });
 
+// Names of the patients in the selector of the explorer, formatted as the desktop application does.
+async function expectPatients(page, names) {
+  const selector = page.getByRole('combobox', { name: 'Search patient...' });
+  await selector.focus();
+  const options = page.getByRole('listbox', { name: 'Search patient...' }).getByRole('option');
+  await expect(options).toHaveText(names);
+  await selector.press('Escape');
+}
+
 async function openFiles(page, files) {
   await page.getByRole('button', { name: 'File' }).click();
   await page.getByRole('menuitem', { name: 'Open' }).hover();
@@ -24,8 +33,10 @@ async function openFiles(page, files) {
 
 test('opened DICOM files appear in the explorer', async ({ page }) => {
   await openFiles(page, [testdata('pydicom/CT_small.dcm'), testdata('pydicom/MR_small.dcm')]);
-  const patients = page.locator('.w-patient-list li');
-  await expect(patients).toHaveText([/CompressedSamples\^CT1 — 1 series/, /CompressedSamples\^MR1 — 1 series/]);
+  await expectPatients(page, ['CompressedSamples, CT1', 'CompressedSamples, MR1']);
+  // The first patient is shown, with its study and series.
+  await expect(page.locator('.w-study-pane')).toHaveCount(1);
+  await expect(page.locator('.w-series-pane')).toHaveCount(1);
   await expect(page.getByRole('status')).toHaveCount(0);
   await page.screenshot({ path: 'test-results/import.png' });
 });
@@ -41,7 +52,7 @@ test('unreadable files are reported at the end', async ({ page }) => {
   await expect(report).toContainText('1 DICOM file(s) cannot be read');
   await report.getByRole('button', { name: 'OK' }).click();
   await expect(report).toBeHidden();
-  await expect(page.locator('.w-patient-list li')).toHaveCount(1);
+  await expectPatients(page, ['CompressedSamples, CT1']);
 });
 
 test('File > Import > DICOM imports a folder, recursively when asked', async ({ page }) => {
@@ -83,12 +94,12 @@ test('files dropped on the window are imported', async ({ page }) => {
   }, bytes);
   await page.dispatchEvent('.w-viewers', 'dragover', { dataTransfer });
   await page.dispatchEvent('.w-viewers', 'drop', { dataTransfer });
-  await expect(page.locator('.w-patient-list li')).toHaveText([/CompressedSamples\^MR1/]);
+  await expectPatients(page, ['CompressedSamples, MR1']);
 });
 
 test('a ZIP archive is read, after its password when encrypted', async ({ page }) => {
   await openFiles(page, [testdata('synthetic/ct-series.zip')]);
-  await expect(page.locator('.w-patient-list li')).toHaveText([/WEASIS\^SYNTHETIC/]);
+  await expectPatients(page, ['WEASIS, SYNTHETIC']);
 
   await openFiles(page, [testdata('synthetic/ct-series-encrypted.zip')]);
   const prompt = page.getByRole('dialog', { name: 'DICOM Zip' });
@@ -98,7 +109,7 @@ test('a ZIP archive is read, after its password when encrypted', async ({ page }
   await expect(prompt).toBeHidden();
   await expect(page.getByRole('status')).toHaveCount(0);
   // Same patient: the instance joins the series already loaded.
-  await expect(page.locator('.w-patient-list li')).toHaveCount(1);
+  await expectPatients(page, ['WEASIS, SYNTHETIC']);
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
@@ -124,5 +135,23 @@ test('the DICOMDIR page reads the files the DICOMDIR references', async ({ page 
   const question = page.getByRole('dialog', { name: 'DICOMDIR' });
   await expect(question).toContainText('No new file has been found from DICOMDIR');
   await question.getByRole('button', { name: 'Yes' }).click();
-  await expect(page.locator('.w-patient-list li')).toHaveText([/WEASIS\^SYNTHETIC — 1 series/]);
+  await expectPatients(page, ['WEASIS, SYNTHETIC']);
+  await expect(page.locator('.w-series-pane')).toHaveCount(1);
+});
+
+test('the explorer shows the studies of the chosen patient', async ({ page }) => {
+  await openFiles(page, [
+    testdata('pydicom/CT_small.dcm'),
+    testdata('pydicom/MR_small.dcm'),
+    testdata('synthetic/ct-series.zip'),
+  ]);
+  await expectPatients(page, ['CompressedSamples, CT1', 'CompressedSamples, MR1', 'WEASIS, SYNTHETIC']);
+  const selector = page.getByRole('combobox', { name: 'Search patient...' });
+  await selector.fill('weasis');
+  const options = page.getByRole('listbox', { name: 'Search patient...' }).getByRole('option');
+  await expect(options).toHaveText(['WEASIS, SYNTHETIC']);
+  await selector.press('Enter');
+  await expect(selector).toHaveValue('WEASIS, SYNTHETIC');
+  await expect(page.locator('.w-series-pane')).toHaveCount(1);
+  await page.screenshot({ path: 'test-results/explorer.png' });
 });

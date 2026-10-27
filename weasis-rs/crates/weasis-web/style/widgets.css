@@ -275,3 +275,30 @@
   gap: 6px;
   margin: 8px 0;
 }
+
+/* Searchable combo box (SearchableComboBox): a text field over a filtered list. */
+.w-combobox {
+  position: relative;
+}
+
+.w-combobox input {
+  width: 100%;
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--ComboBox-foreground, var(--ui-foreground));
+  background: var(--ComboBox-background, var(--ui-background));
+  border: 1px solid var(--Component-borderColor, var(--ui-borderColor));
+  border-radius: var(--arc);
+  padding: 3px 6px;
+}
+
+.w-combobox-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.w-combobox-list .w-highlighted {
+  color: var(--MenuItem-selectionForeground);
+  background: var(--MenuItem-selectionBackground);
+}
